@@ -4,7 +4,7 @@ FROM tomcat:10.1
 RUN rm -rf /usr/local/tomcat/webapps/*
 
 # Copy WAR file to Tomcat
-COPY target/*.war
+COPY target/*.war/usr/local/tomcat/webapps/ROOT.war
 # Expose port
 EXPOSE 8080
 
