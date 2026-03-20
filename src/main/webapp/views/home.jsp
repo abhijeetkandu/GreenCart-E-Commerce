@@ -400,7 +400,7 @@
                             hasImage = true;
                             String imgPath = imgRs.getString("image_url");
                     %>
-                        <div><img src="<%=request.getContextPath()%>/<%=imgPath%>" alt="<%= name %>"></div>
+                        <div><img src="<%= imgPath.startsWith("http") ? imgPath : request.getContextPath() + "/" + imgPath %>" alt="<%= name %>"></div>
                     <%
                         }
                         if (!hasImage) {
