@@ -1,26 +1,44 @@
+package com.ecommerce.controllers;
+
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.ecommerce.model.DbConnection;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
-import java.io.*;
-import java.sql.*;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.Map;
 
 @WebServlet("/updateProduct")
 @MultipartConfig
 public class UpdateProductServlet extends HttpServlet {
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    private Cloudinary cloudinary;
 
-        int productId    = Integer.parseInt(request.getParameter("productId"));
-        String name      = request.getParameter("name");
-        double price     = Double.parseDouble(request.getParameter("price"));
-        int quantity     = Integer.parseInt(request.getParameter("quantity"));
+    @Override
+    public void init() {
+        cloudinary = new Cloudinary(ObjectUtils.asMap(
+            "cloud_name", "dn7bbmpgd",
+            "api_key",    "447983828759695",
+            "api_secret", "9KUqkdYirvK0Ic5ZD57U1h_hb0Q"
+        ));
+    }
 
-        // Upload folder path (same as addProduct servlet)
-        String uploadPath = getServletContext().getRealPath("") + "uploads" + File.separator;
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) uploadDir.mkdirs();
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException, ServletException {
+
+        int    productId = Integer.parseInt(req.getParameter("productId"));
+        String name      = req.getParameter("name");
+        double price     = Double.parseDouble(req.getParameter("price"));
+        int    quantity  = Integer.parseInt(req.getParameter("quantity"));
 
         Connection conn = null;
         try {
@@ -36,17 +54,14 @@ public class UpdateProductServlet extends HttpServlet {
             ps.executeUpdate();
             ps.close();
 
-            // 2. Check if any new image is uploaded
+            // 2. Check if any new image uploaded
             boolean anyImage = false;
             for (int i = 1; i <= 8; i++) {
-                Part p = request.getPart("image" + i);
-                if (p != null && p.getSize() > 0) {
-                    anyImage = true;
-                    break;
-                }
+                Part p = req.getPart("image" + i);
+                if (p != null && p.getSize() > 0) { anyImage = true; break; }
             }
 
-            // 3. If new images uploaded → delete old images → insert new
+            // 3. If new images → delete old DB records → upload new to Cloudinary
             if (anyImage) {
                 PreparedStatement delImg = conn.prepareStatement(
                     "DELETE FROM product_images WHERE product_id=?");
@@ -54,21 +69,28 @@ public class UpdateProductServlet extends HttpServlet {
                 delImg.executeUpdate();
                 delImg.close();
 
-                for (int i = 1; i <= 8; i++) {
-                    Part filePart = request.getPart("image" + i);
-                    if (filePart != null && filePart.getSize() > 0) {
-                        String fileName = "product_" + productId + "_" + i + "_" + filePart.getSubmittedFileName();
-                        filePart.write(uploadPath + fileName);
-                        String imageUrl = "uploads/" + fileName;
+                PreparedStatement psImg = conn.prepareStatement(
+                    "INSERT INTO product_images(product_id, image_url) VALUES (?, ?)");
 
-                        PreparedStatement imgPs = conn.prepareStatement(
-                            "INSERT INTO product_images (product_id, image_url) VALUES (?, ?)");
-                        imgPs.setInt(1, productId);
-                        imgPs.setString(2, imageUrl);
-                        imgPs.executeUpdate();
-                        imgPs.close();
+                for (int i = 1; i <= 8; i++) {
+                    Part filePart = req.getPart("image" + i);
+                    if (filePart != null && filePart.getSize() > 0) {
+                        InputStream fileStream = filePart.getInputStream();
+                        Map uploadResult = cloudinary.uploader().upload(
+                            fileStream.readAllBytes(),
+                            ObjectUtils.asMap(
+                                "folder",    "greencart/products",
+                                "public_id", "product_" + productId + "_" + i
+                            )
+                        );
+                        String imageUrl = (String) uploadResult.get("secure_url");
+
+                        psImg.setInt(1, productId);
+                        psImg.setString(2, imageUrl);
+                        psImg.executeUpdate();
                     }
                 }
+                psImg.close();
             }
 
         } catch (Exception e) {
@@ -77,6 +99,6 @@ public class UpdateProductServlet extends HttpServlet {
             try { if (conn != null) conn.close(); } catch (Exception e) {}
         }
 
-        response.sendRedirect(request.getContextPath() + "/views/adminhome.jsp");
+        resp.sendRedirect(req.getContextPath() + "/views/adminhome.jsp");
     }
 }
