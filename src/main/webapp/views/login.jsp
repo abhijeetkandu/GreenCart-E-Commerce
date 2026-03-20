@@ -181,7 +181,7 @@
 <div class="right-panel">
     <div class="form-box">
 
-        <h2 class="form-title">Welcome back 👋</h2>
+        <h2 class="form-title">Welcome 👋</h2>
         <p class="form-subtitle">Login to your Green Cart account</p>
 
         <%
