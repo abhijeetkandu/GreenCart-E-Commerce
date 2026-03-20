@@ -223,7 +223,7 @@
 
     <div class="admin-badge"><span>⚙️</span> Admin Panel</div>
 
-    <h2 class="card-title">Welcome Back</h2>
+    <h2 class="card-title">Welcome Admin</h2>
     <p class="card-subtitle">Sign in to manage your Green Cart store</p>
 
     <% if (error != null) { %>
