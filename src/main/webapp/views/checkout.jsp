@@ -397,29 +397,49 @@
 
     // Place order
     function placeOrder() {
-        var firstName = document.getElementById('firstName').value.trim();
-        var phone     = document.getElementById('phone').value.trim();
-        var address   = document.getElementById('address').value.trim();
-        var city      = document.getElementById('city').value.trim();
-        var pin       = document.getElementById('pin').value.trim();
+    var firstName = document.getElementById('firstName').value.trim();
+    var phone     = document.getElementById('phone').value.trim();
+    var address   = document.getElementById('address').value.trim();
+    var city      = document.getElementById('city').value.trim();
+    var pin       = document.getElementById('pin').value.trim();
 
-        if (!firstName || !phone || !address || !city || !pin) {
-            alert('Please fill in all delivery details before placing the order.');
-            return;
-        }
-
-        // Show success screen
-        document.getElementById('checkoutSection').style.display = 'none';
-        document.getElementById('successSection').style.display  = 'block';
-        document.getElementById('successCard').style.display     = 'block';
-
-        // Generate order ID
-        var orderId = 'GC-' + Date.now().toString().slice(-8).toUpperCase();
-        document.getElementById('orderId').textContent = orderId;
-
-        // Confetti 🎉
-        launchConfetti();
+    if (!firstName || !phone || !address || !city || !pin) {
+        alert('Please fill in all delivery details before placing the order.');
+        return;
     }
+
+    // ✅ Update stepper — mark Checkout as done, Confirm as active
+    var steps = document.querySelectorAll('.step');
+    var lines = document.querySelectorAll('.step-line');
+
+    // Step 1 Cart — already done
+    steps[0].className = 'step done';
+    steps[0].querySelector('.step-circle').textContent = '✓';
+
+    // Step 2 Checkout — mark as done
+    steps[1].className = 'step done';
+    steps[1].querySelector('.step-circle').textContent = '✓';
+
+    // Step 3 Confirm — mark as active
+    steps[2].className = 'step active';
+    steps[2].querySelector('.step-circle').textContent = '3';
+
+    // Both lines become done
+    lines[0].className = 'step-line done';
+    lines[1].className = 'step-line done';
+
+    // Show success screen
+    document.getElementById('checkoutSection').style.display = 'none';
+    document.getElementById('successSection').style.display  = 'block';
+    document.getElementById('successCard').style.display     = 'block';
+
+    // Generate order ID
+    var orderId = 'GC-' + Date.now().toString().slice(-8).toUpperCase();
+    document.getElementById('orderId').textContent = orderId;
+
+    // Confetti 🎉
+    launchConfetti();
+}
 
     function clearCart() {
         // Optionally call a servlet to clear the session cart
