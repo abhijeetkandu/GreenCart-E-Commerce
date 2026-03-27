@@ -324,6 +324,146 @@
         });
     });
 </script>
+<%-- GREENCART CHATBOT --%>
+<style>
+  #gc-bubble {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: #2d6a4f; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(45,106,79,0.45);
+    transition: background 0.2s, transform 0.2s; z-index: 9999;
+  }
+  #gc-bubble:hover { background: #1a3c2b; transform: scale(1.07); }
+  #gc-win {
+    position: fixed; bottom: 94px; right: 28px;
+    width: 360px; max-height: 520px;
+    background: #fdfaf5; border-radius: 18px;
+    border: 1px solid rgba(45,106,79,0.15);
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15); z-index: 9998;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  #gc-win.gc-hidden { opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.97); }
+  .gc-header { background: #1a3c2b; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .gc-icon { width: 36px; height: 36px; background: #52b788; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .gc-header h4 { font-family: 'Playfair Display', serif; color: #fff; font-size: 15px; font-weight: 700; margin: 0; }
+  .gc-header p { color: rgba(255,255,255,0.6); font-size: 11px; margin: 0; }
+  .gc-dot { width: 8px; height: 8px; background: #52b788; border-radius: 50%; margin-left: auto; }
+  .gc-close { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.6); font-size: 18px; }
+  .gc-close:hover { color: #fff; }
+  .gc-msgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .gc-msgs::-webkit-scrollbar { width: 4px; }
+  .gc-msgs::-webkit-scrollbar-thumb { background: rgba(45,106,79,0.2); border-radius: 4px; }
+  .gc-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; color: #52b788; }
+  .gc-lbl.u { color: rgba(255,255,255,0.7); text-align: right; }
+  .gc-msg { max-width: 82%; padding: 9px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; word-break: break-word; }
+  .gc-msg.b { background: #fff; color: #1a1a1a; border: 1px solid rgba(45,106,79,0.12); border-bottom-left-radius: 4px; align-self: flex-start; }
+  .gc-msg.u { background: #2d6a4f; color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+  .gc-typing { display: flex; gap: 4px; align-items: center; padding: 10px 13px; background: #fff; border: 1px solid rgba(45,106,79,0.12); border-radius: 14px; border-bottom-left-radius: 4px; align-self: flex-start; }
+  .gc-typing span { width: 6px; height: 6px; background: #52b788; border-radius: 50%; animation: gcbounce 1.2s infinite; }
+  .gc-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .gc-typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes gcbounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+  .gc-chips { padding: 0 14px 10px; display: flex; flex-wrap: wrap; gap: 6px; background: #fdfaf5; }
+  .gc-chip { background: #f5f0e8; color: #1a3c2b; border: 1px solid rgba(45,106,79,0.18); border-radius: 50px; padding: 5px 12px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.15s; font-family: 'DM Sans', sans-serif; }
+  .gc-chip:hover { background: #52b788; color: #fff; border-color: #52b788; }
+  .gc-input-area { padding: 10px 12px 12px; background: #fff; border-top: 1px solid rgba(45,106,79,0.1); display: flex; gap: 8px; align-items: center; }
+  #gc-input { flex: 1; border: 1px solid rgba(45,106,79,0.2); border-radius: 50px; padding: 9px 16px; font-size: 13.5px; font-family: 'DM Sans', sans-serif; outline: none; background: #fdfaf5; color: #1a1a1a; }
+  #gc-input:focus { border-color: #2d6a4f; }
+  #gc-send { width: 38px; height: 38px; border-radius: 50%; background: #e76f51; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  #gc-send:hover { background: #cf5a3b; }
+  .gc-powered { text-align: center; font-size: 10px; color: #7a7a6a; padding: 4px; background: #fff; }
+</style>
 
+<div id="gc-win" class="gc-hidden">
+  <div class="gc-header">
+    <div class="gc-icon">🌿</div>
+    <div>
+      <h4>GreenCart Assistant</h4>
+      <p>Ask me anything about our store</p>
+    </div>
+    <div class="gc-dot"></div>
+    <button class="gc-close" onclick="gcToggle()">✕</button>
+  </div>
+  <div class="gc-msgs" id="gc-msgs">
+    <div>
+      <div class="gc-lbl">GreenCart</div>
+      <div class="gc-msg b">👋 Hi! I'm your GreenCart assistant. Ask me about products, delivery, offers, or anything about the store!</div>
+    </div>
+  </div>
+  <div class="gc-chips" id="gc-chips">
+    <button class="gc-chip" onclick="gcSuggest('What products do you have?')">Products</button>
+    <button class="gc-chip" onclick="gcSuggest('How does delivery work?')">Delivery</button>
+    <button class="gc-chip" onclick="gcSuggest('Any offers today?')">Offers</button>
+    <button class="gc-chip" onclick="gcSuggest('How do I place an order?')">Place order</button>
+  </div>
+  <div class="gc-input-area">
+    <input type="text" id="gc-input" placeholder="Ask about GreenCart..." onkeydown="if(event.key==='Enter') gcSend()" />
+    <button id="gc-send" onclick="gcSend()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+  <div class="gc-powered">Powered by GreenCart AI</div>
+</div>
+
+<button id="gc-bubble" onclick="gcToggle()">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+</button>
+
+<script>
+  var gcOpen = false;
+  function gcToggle() {
+    gcOpen = !gcOpen;
+    var w = document.getElementById('gc-win');
+    if (gcOpen) w.classList.remove('gc-hidden');
+    else w.classList.add('gc-hidden');
+  }
+  function gcAppend(text, type) {
+    var msgs = document.getElementById('gc-msgs');
+    var wrapper = document.createElement('div');
+    var lbl = document.createElement('div');
+    lbl.className = 'gc-lbl ' + (type === 'u' ? 'u' : '');
+    lbl.textContent = type === 'b' ? 'GreenCart' : 'You';
+    var msg = document.createElement('div');
+    msg.className = 'gc-msg ' + type;
+    msg.textContent = text;
+    wrapper.appendChild(lbl);
+    wrapper.appendChild(msg);
+    msgs.appendChild(wrapper);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function gcTyping() {
+    var msgs = document.getElementById('gc-msgs');
+    var el = document.createElement('div');
+    el.className = 'gc-typing'; el.id = 'gc-typing';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function gcRemoveTyping() { var el = document.getElementById('gc-typing'); if (el) el.remove(); }
+  function gcSend() {
+    var input = document.getElementById('gc-input');
+    var query = input.value.trim();
+    if (!query) return;
+    input.value = '';
+    document.getElementById('gc-chips').style.display = 'none';
+    gcAppend(query, 'u');
+    gcTyping();
+    fetch('https://ai-chatbot-jpq8.onrender.com/ai/groq?query=' + encodeURIComponent(query), { method: 'POST' })
+      .then(function(r) { return r.text(); })
+      .then(function(t) { gcRemoveTyping(); gcAppend(t, 'b'); })
+      .catch(function() { gcRemoveTyping(); gcAppend('Sorry, could not connect. Please try again!', 'b'); });
+  }
+  function gcSuggest(text) {
+    document.getElementById('gc-input').value = text;
+    gcSend();
+  }
+</script>
 </body>
 </html>
