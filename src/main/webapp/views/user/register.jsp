@@ -187,7 +187,7 @@
 
         <div class="footer-link">
             Already have an account?
-            <a href="<%=request.getContextPath()%>/views/login.jsp">Login Here</a>
+            <a href="<%=request.getContextPath()%>/views/user/login.jsp">Login Here</a>
         </div>
 
     </div>

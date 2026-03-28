@@ -37,7 +37,7 @@ public class Updateorderstatusservlet extends HttpServlet {
                 e.printStackTrace();
             }
         }
-        resp.sendRedirect(req.getContextPath() + "/views/adminorders.jsp");
+        resp.sendRedirect(req.getContextPath() + "/views/admin/adminorders.jsp");
     }
 
 }

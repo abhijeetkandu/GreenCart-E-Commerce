@@ -37,6 +37,6 @@ public class DeleteProductServlet extends HttpServlet {
             try { if (conn != null) conn.close(); } catch (Exception e) {}
         }
 
-        response.sendRedirect(request.getContextPath() + "/views/adminhome.jsp");
+        response.sendRedirect(request.getContextPath() + "/views/admin/adminhome.jsp");
     }
 }

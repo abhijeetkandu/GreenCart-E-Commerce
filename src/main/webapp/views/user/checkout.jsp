@@ -129,7 +129,7 @@
 
 <nav class="navbar-custom">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="<%=request.getContextPath()%>/views/home.jsp" class="text-decoration-none d-flex align-items-center gap-2">
+        <a href="<%=request.getContextPath()%>/views/user/home.jsp" class="text-decoration-none d-flex align-items-center gap-2">
             <span style="font-size:1.3rem">🌿</span>
             <span class="brand-text">Green<span class="brand-dot">Cart</span></span>
         </a>

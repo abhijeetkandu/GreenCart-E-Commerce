@@ -222,7 +222,7 @@
 
         <div class="footer-link">
             Don't have an account?
-            <a href="<%=request.getContextPath()%>/views/register.jsp">Register Here</a>
+            <a href="<%=request.getContextPath()%>/views/user/register.jsp">Register Here</a>
         </div>
 
     </div>

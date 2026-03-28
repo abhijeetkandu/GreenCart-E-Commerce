@@ -89,10 +89,10 @@ public class Placeorderservlet extends HttpServlet {
             }
             itemPs.close();
 
-            // Clear cart after order placed
+            
             session.removeAttribute("cart");
 
-            // Store order id in session for confirmation page
+           
             session.setAttribute("lastOrderId", "GC-" + orderId);
             session.setAttribute("lastOrderTotal", total);
 
@@ -102,6 +102,6 @@ public class Placeorderservlet extends HttpServlet {
             try { if (conn != null) conn.close(); } catch (Exception e) {}
         }
 
-        resp.sendRedirect(req.getContextPath() + "/views/checkout.jsp?success=true");
+        resp.sendRedirect(req.getContextPath() + "/views/user/checkout.jsp?success=true");
     }
 }

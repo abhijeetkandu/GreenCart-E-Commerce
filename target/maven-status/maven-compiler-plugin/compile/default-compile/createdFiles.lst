@@ -1,8 +1,10 @@
 com\ecommerce\model\DbConnection.class
 com\ecommerce\controllers\LoginServlet.class
 com\ecommerce\controllers\RegisterServlet.class
+com\ecommerce\controllers\Placeorderservlet.class
 com\ecommerce\controllers\AddProductServlet.class
 com\ecommerce\controllers\AdminLoginServlet.class
 com\ecommerce\controllers\UpdateQServlet.class
-UpdateProductServlet.class
+com\ecommerce\controllers\UpdateProductServlet.class
 DeleteProductServlet.class
+com\ecommerce\controllers\Updateorderstatusservlet.class

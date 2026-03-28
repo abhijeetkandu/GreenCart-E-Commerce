@@ -80,11 +80,11 @@
 
 <nav class="navbar-custom">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="<%=request.getContextPath()%>/views/home.jsp" class="text-decoration-none d-flex align-items-center gap-2">
+        <a href="<%=request.getContextPath()%>/views/user/home.jsp" class="text-decoration-none d-flex align-items-center gap-2">
             <span style="font-size:1.3rem">🌿</span>
             <span class="brand-text">Green<span class="brand-dot">Cart</span></span>
         </a>
-        <a href="<%=request.getContextPath()%>/views/home.jsp" class="btn-back">← Back to Home</a>
+        <a href="<%=request.getContextPath()%>/views/user/home.jsp" class="btn-back">← Back to Home</a>
     </div>
 </nav>
 
@@ -160,7 +160,7 @@
         <div class="empty-icon">📦</div>
         <h3>No orders yet!</h3>
         <p>You haven't placed any orders yet. Start shopping!</p>
-        <a href="<%=request.getContextPath()%>/views/home.jsp" class="btn-shop">🌿 Shop Now</a>
+        <a href="<%=request.getContextPath()%>/views/user/home.jsp" class="btn-shop">🌿 Shop Now</a>
     </div>
 <% } %>
 </div>

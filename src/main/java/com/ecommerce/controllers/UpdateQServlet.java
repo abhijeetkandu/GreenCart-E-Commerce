@@ -78,7 +78,7 @@ public class UpdateQServlet extends HttpServlet {
             int cartSize = cart.size();
             resp.getWriter().write(status + "|" + newQty + "|" + cartSize + "|" + message);
         } else {
-            resp.sendRedirect(req.getContextPath() + "/views/home.jsp");
+            resp.sendRedirect(req.getContextPath() + "/views/user/home.jsp");
         }
     }
 }

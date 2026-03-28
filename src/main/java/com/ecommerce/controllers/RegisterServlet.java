@@ -29,14 +29,14 @@ public class RegisterServlet extends HttpServlet {
             // Name Validation — at least 3 characters
             if (reg_name == null || reg_name.trim().length() < 3) {
                 req.setAttribute("error", "Name must contain at least 3 characters!");
-                req.getRequestDispatcher("/views/register.jsp").forward(req, resp);
+                req.getRequestDispatcher("/views/user/register.jsp").forward(req, resp);
                 return;
             }
 
             // Confirm Password must match
             if (!reg_password.equals(confPass)) {
                 req.setAttribute("error", "Password and Confirm Password do not match!");
-                req.getRequestDispatcher("/views/register.jsp").forward(req, resp);
+                req.getRequestDispatcher("/views/user/register.jsp").forward(req, resp);
                 return;
             }
 
@@ -50,10 +50,10 @@ public class RegisterServlet extends HttpServlet {
             int count = ps.executeUpdate();
 
             if (count > 0) {
-                resp.sendRedirect(req.getContextPath() + "/views/login.jsp");
+                resp.sendRedirect(req.getContextPath() + "/views/user/login.jsp");
             } else {
                 req.setAttribute("error", "Registration Failed! Please try again.");
-                req.getRequestDispatcher("/views/register.jsp").forward(req, resp);
+                req.getRequestDispatcher("/views/user/register.jsp").forward(req, resp);
             }
 
         } catch (Exception e) {

@@ -121,7 +121,7 @@
             <span class="brand-text">Green<span class="brand-dot">Cart</span></span>
         </a>
         <div class="d-flex align-items-center gap-3">
-            <a href="<%=request.getContextPath()%>/views/adminlogin.jsp" class="btn-admin-link">Admin</a>
+            <a href="<%=request.getContextPath()%>/views/admin/adminlogin.jsp" class="btn-admin-link">Admin</a>
             <a href="cart.jsp" class="btn-cart" id="cartBtn">
                 🛒 Cart (<span id="cartCount"><%= cart.size() %></span>)
             </a>

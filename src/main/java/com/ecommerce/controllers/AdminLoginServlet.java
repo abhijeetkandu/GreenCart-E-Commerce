@@ -32,11 +32,11 @@ public class AdminLoginServlet extends HttpServlet {
                 HttpSession session = req.getSession();
                 session.setAttribute("admin", username);
 
-                resp.sendRedirect(req.getContextPath() + "/views/adminhome.jsp");
+                resp.sendRedirect(req.getContextPath() + "/views/admin/adminhome.jsp");
                 System.out.println("admin login successfully");
             } else {
               
-                resp.sendRedirect(req.getContextPath() + "/views/adminlogin.jsp?error=invalid");
+                resp.sendRedirect(req.getContextPath() + "/views/admin/adminlogin.jsp?error=invalid");
                 System.out.println("Failed To Login Admin!!");
             }
         } catch (Exception e) {

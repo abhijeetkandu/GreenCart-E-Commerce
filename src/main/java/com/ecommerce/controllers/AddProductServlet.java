@@ -91,7 +91,7 @@ public class AddProductServlet extends HttpServlet {
                 }
             }
 
-            resp.sendRedirect(req.getContextPath() + "/views/home.jsp");
+            resp.sendRedirect(req.getContextPath() + "/views/user/home.jsp");
 
         } catch (Exception e) {
             e.printStackTrace();

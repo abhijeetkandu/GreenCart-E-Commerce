@@ -36,11 +36,11 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("userName",  rs.getString("name"));
                 session.setAttribute("userId",    rs.getInt("id"));
 
-                resp.sendRedirect(req.getContextPath() + "/views/home.jsp");
+                resp.sendRedirect(req.getContextPath() + "/views/user/home.jsp");
 
             } else {
                 req.setAttribute("error", "Invalid Email or Password!");
-                req.getRequestDispatcher("views/login.jsp").forward(req, resp);
+                req.getRequestDispatcher(req.getContextPath()+"views/user/login.jsp").forward(req, resp);
             }
 
             rs.close();

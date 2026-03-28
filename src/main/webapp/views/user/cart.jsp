@@ -266,11 +266,11 @@
 <%-- NAVBAR --%>
 <nav class="navbar-custom">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="<%=request.getContextPath()%>/views/home.jsp" class="text-decoration-none">
+        <a href="<%=request.getContextPath()%>/views/user/home.jsp" class="text-decoration-none">
             <span style="font-size:1.3rem">🌿</span>
             <span class="brand-text">Green<span class="brand-dot">Cart</span></span>
         </a>
-        <a href="<%=request.getContextPath()%>/views/home.jsp" class="btn-continue">
+        <a href="<%=request.getContextPath()%>/views/user/home.jsp" class="btn-continue">
             ← Continue Shopping
         </a>
     </div>
@@ -297,7 +297,7 @@
         <div class="empty-icon">🛒</div>
         <h3>Your cart is empty</h3>
         <p>Looks like you haven't added anything yet.</p>
-        <a href="<%=request.getContextPath()%>/views/home.jsp" class="btn-shop">
+        <a href="<%=request.getContextPath()%>/views/user/home.jsp" class="btn-shop">
             🌿 Start Shopping
         </a>
     </div>
@@ -400,7 +400,7 @@
                 </div>
             </div>
 
-            <a href="<%=request.getContextPath()%>/views/checkout.jsp" class="btn-checkout">
+            <a href="<%=request.getContextPath()%>/views/user/checkout.jsp" class="btn-checkout">
                 Proceed to Checkout →
             </a>
             <div class="secure-badge">🔒 Secure &amp; Encrypted Checkout</div>

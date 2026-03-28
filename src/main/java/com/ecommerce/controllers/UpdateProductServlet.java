@@ -99,6 +99,6 @@ public class UpdateProductServlet extends HttpServlet {
             try { if (conn != null) conn.close(); } catch (Exception e) {}
         }
 
-        resp.sendRedirect(req.getContextPath() + "/views/adminhome.jsp");
+        resp.sendRedirect(req.getContextPath() + "/views/admin/adminhome.jsp");
     }
 }
