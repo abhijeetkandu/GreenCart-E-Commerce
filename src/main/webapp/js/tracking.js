@@ -2,9 +2,7 @@
 // Add this script to every user-facing JSP page
 
 (function () {
-    var TRACK_URL  = (typeof window.TRACK_URL !== 'undefined')
-                     ? window.TRACK_URL
-                     : '/track'; // relative URL — works on any domain
+    var TRACK_URL = 'https://greencart-admin-2fc6.onrender.com/track'; // relative URL — works on any domain
 
     var sessionStart = Date.now();
     var pageStart    = Date.now();
