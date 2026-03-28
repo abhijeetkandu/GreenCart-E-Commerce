@@ -17,7 +17,7 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String log_email = req.getParameter("email");
-        String log_pass = req.getParameter("password");
+        String log_pass  = req.getParameter("password");
 
         try {
             Connection conn = DbConnection.getConnection();
@@ -30,21 +30,17 @@ public class LoginServlet extends HttpServlet {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-
-                // ✅ Session banana (important)
                 HttpSession session = req.getSession();
                 session.setAttribute("userEmail", log_email);
-                session.setAttribute("userRole", rs.getString("role"));
+                session.setAttribute("userRole",  rs.getString("role"));
+                session.setAttribute("userName",  rs.getString("name"));
+                session.setAttribute("userId",    rs.getInt("id"));
 
-                // ✅ Home page pe redirect
                 resp.sendRedirect(req.getContextPath() + "/views/home.jsp");
 
             } else {
-
-                // ❌ Login failed → error message bhejo
                 req.setAttribute("error", "Invalid Email or Password!");
-                req.getRequestDispatcher("views/login.jsp")
-                   .forward(req, resp);
+                req.getRequestDispatcher("views/login.jsp").forward(req, resp);
             }
 
             rs.close();
