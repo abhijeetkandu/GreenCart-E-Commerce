@@ -184,6 +184,9 @@
         else { el.textContent='✗ Passwords do not match'; el.className='match-txt err'; }
     }
 </script>
-
+<script>
+    var TRACK_URL = '<%=request.getContextPath()%>/track';
+</script>
+<script src="<%=request.getContextPath()%>/js/tracking.js"></script>
 </body>
 </html>

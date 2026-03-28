@@ -1,101 +1,124 @@
-// ── Green Cart User Behaviour Tracker ────────────────────────────────
-// Add this script to every user-facing JSP page
-
 (function () {
-    var TRACK_URL = 'https://greencart-admin-2fc6.onrender.com/track'; // relative URL — works on any domain
+
+    // 🔗 Your admin tracking API
+    var TRACK_URL = 'https://greencart-admin-2fc6.onrender.com/track';
 
     var sessionStart = Date.now();
-    var pageStart    = Date.now();
+    var pageStart = Date.now();
 
-    // ── Detect device type ──────────────────────────────────────────
+    // 🆔 Persistent session ID (VERY IMPORTANT FIX)
+    var sessionId = localStorage.getItem("gc_session_id");
+    if (!sessionId) {
+        sessionId = "sess_" + Math.random().toString(36).substring(2) + Date.now();
+        localStorage.setItem("gc_session_id", sessionId);
+    }
+
+    // 📱 Device detection
     function getDeviceType() {
         var ua = navigator.userAgent;
         if (/Mobi|Android|iPhone|iPad/i.test(ua)) return 'Mobile';
-        if (/Tablet|iPad/i.test(ua)) return 'Tablet';
+        if (/Tablet/i.test(ua)) return 'Tablet';
         return 'Desktop';
     }
 
-    // ── Send data to TrackingServlet ────────────────────────────────
+    // 🚀 Send data (FIXED: removed sendBeacon, added credentials)
     function send(params) {
+        params.sessionId = sessionId; // attach sessionId
+
         var form = new FormData();
-        for (var key in params) form.append(key, params[key]);
-        navigator.sendBeacon
-            ? navigator.sendBeacon(TRACK_URL, form)
-            : fetch(TRACK_URL, { method: 'POST', body: form });
+        for (var key in params) {
+            form.append(key, params[key]);
+        }
+
+        fetch(TRACK_URL, {
+            method: 'POST',
+            body: form,
+            credentials: 'include' // IMPORTANT
+        }).catch(function (err) {
+            console.error("Tracking failed:", err);
+        });
     }
 
-    // ── Session Start ───────────────────────────────────────────────
+    // 🟢 SESSION START
     send({
-        action:     'session_start',
+        action: 'session_start',
         deviceType: getDeviceType(),
-        pageUrl:    window.location.pathname
+        pageUrl: window.location.pathname
     });
 
-    // ── Page Visit Event ────────────────────────────────────────────
+    // 📄 PAGE VISIT
     send({
-        action:    'event',
+        action: 'event',
         eventType: 'page_visit',
         eventData: document.title,
-        pageUrl:   window.location.pathname,
+        pageUrl: window.location.pathname,
         timeOnPage: 0
     });
 
-    // ── Track time on page & session end ───────────────────────────
-    window.addEventListener('beforeunload', function () {
+    // ⏱️ TIME TRACKING (BETTER than beforeunload)
+    function sendTimeData() {
         var timeOnPage = Math.round((Date.now() - pageStart) / 1000);
-        var totalTime  = Math.round((Date.now() - sessionStart) / 1000);
+        var totalTime = Math.round((Date.now() - sessionStart) / 1000);
 
         send({
-            action:     'event',
-            eventType:  'time_on_page',
-            eventData:  document.title,
-            pageUrl:    window.location.pathname,
+            action: 'event',
+            eventType: 'time_on_page',
+            eventData: document.title,
+            pageUrl: window.location.pathname,
             timeOnPage: timeOnPage
         });
 
         send({
-            action:      'session_end',
-            timeOnPage:  totalTime,
-            pageUrl:     window.location.pathname
+            action: 'session_end',
+            timeOnPage: totalTime,
+            pageUrl: window.location.pathname
         });
+    }
+
+    // 🔥 Reliable tracking (works on mobile too)
+    document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "hidden") {
+            sendTimeData();
+        }
     });
 
-    // ── Product Click Tracking ──────────────────────────────────────
+    window.addEventListener("beforeunload", sendTimeData);
+
+    // 🛍️ PRODUCT CLICK
     document.addEventListener('click', function (e) {
         var card = e.target.closest('.product-card');
         if (card) {
             var name = card.querySelector('.product-name');
             if (name) {
                 send({
-                    action:    'event',
+                    action: 'event',
                     eventType: 'product_click',
                     eventData: name.textContent.trim(),
-                    pageUrl:   window.location.pathname,
+                    pageUrl: window.location.pathname,
                     timeOnPage: Math.round((Date.now() - pageStart) / 1000)
                 });
             }
         }
     });
 
-    // ── Add to Cart / Remove Tracking ──────────────────────────────
-    // Called from updateCart() in home.jsp
+    // 🛒 CART EVENTS
     window.trackCartEvent = function (action, productName) {
         send({
-            action:    'event',
+            action: 'event',
             eventType: action === 'increase' ? 'add_to_cart' : 'remove_from_cart',
             eventData: productName,
-            pageUrl:   window.location.pathname,
+            pageUrl: window.location.pathname,
             timeOnPage: Math.round((Date.now() - pageStart) / 1000)
         });
     };
 
-    // ── Order Placed Tracking ───────────────────────────────────────
+    // 📦 ORDER PLACED
     window.trackOrderPlaced = function (orderId, total) {
         send({
-            action:    'event',
+            action: 'event',
             eventType: 'order_placed',
-            eventData: 'Order: ' + orderId + ' | Total: ₹' + total,
-            pageUrl:   window.location.pathname,
+            eventData: 'Order: ' + orderId + ' | ₹' + total,
+            pageUrl: window.location.pathname,
             timeOnPage: Math.round((Date.now() - pageStart) / 1000)
         });
     };
