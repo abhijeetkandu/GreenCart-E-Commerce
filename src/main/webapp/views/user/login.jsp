@@ -4,227 +4,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login – Green Cart</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Login — GreenCart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,700&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --green-dark:  #1a3c2b;
-            --green-mid:   #2d6a4f;
-            --green-light: #52b788;
-            --cream:       #f5f0e8;
-            --warm-white:  #fdfaf5;
-            --accent:      #e76f51;
-            --text-dark:   #1a1a1a;
-            --text-muted:  #7a7a6a;
+            --forest:#0f2318; --leaf:#246b3a; --sage:#3a9460; --mint:#5dbe82;
+            --lime:#a8e6bf; --cream:#f8f4ed; --warm:#fdfaf6; --clay:#e8dfd0;
+            --ember:#d4522a; --ink:#0c1a12; --mist:#7a9485; --border:#e2ddd6;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'DM Sans', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            background: var(--warm-white);
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Satoshi',sans-serif; min-height:100vh; display:grid; grid-template-columns:1fr 1fr; overflow:hidden; }
 
-        /* LEFT PANEL */
-        .left-panel {
-            width: 45%;
-            background: linear-gradient(145deg, var(--green-dark) 0%, var(--green-mid) 60%, var(--green-light) 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .left-panel::before {
-            content: '';
-            position: absolute;
-            width: 400px; height: 400px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-            top: -100px; right: -100px;
-        }
-        .left-panel::after {
-            content: '';
-            position: absolute;
-            width: 250px; height: 250px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-            bottom: -60px; left: -60px;
-        }
-        .left-logo { font-size: 3.5rem; margin-bottom: 1rem; }
-        .left-brand {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #fff;
-            margin-bottom: 0.5rem;
-        }
-        .left-brand span { color: var(--green-light); }
-        .left-tagline { color: rgba(255,255,255,0.7); font-size: 1rem; text-align: center; max-width: 260px; margin-bottom: 2.5rem; }
-        .left-features { list-style: none; padding: 0; }
-        .left-features li {
-            color: rgba(255,255,255,0.85);
-            font-size: 0.9rem;
-            margin-bottom: 0.7rem;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-        .left-features li span { font-size: 1.1rem; }
+        /* LEFT */
+        .left { background:var(--forest); display:flex; flex-direction:column; justify-content:space-between; padding:3rem; position:relative; overflow:hidden; }
+        .left::before { content:''; position:absolute; width:500px; height:500px; background:radial-gradient(circle,rgba(93,190,130,0.1),transparent 65%); top:-150px; right:-100px; pointer-events:none; }
+        .left::after  { content:''; position:absolute; width:300px; height:300px; background:radial-gradient(circle,rgba(93,190,130,0.07),transparent 65%); bottom:-60px; left:-50px; pointer-events:none; }
 
-        /* RIGHT PANEL */
-        .right-panel {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-        .form-box { width: 100%; max-width: 400px; }
+        .left-brand { display:flex; align-items:center; gap:0.7rem; z-index:1; }
+        .brand-leaf { width:38px; height:38px; background:linear-gradient(135deg,var(--mint),var(--sage)); border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+        .brand-txt { font-family:'Fraunces',serif; font-size:1.3rem; font-weight:700; color:#fff; }
+        .brand-txt em { font-style:normal; color:var(--mint); }
 
-        .form-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--green-dark);
-            margin-bottom: 0.3rem;
-        }
-        .form-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+        .left-hero { z-index:1; }
+        .left-hero h2 { font-family:'Fraunces',serif; font-size:2.8rem; font-weight:900; color:#fff; line-height:1.1; letter-spacing:-1px; margin-bottom:1rem; }
+        .left-hero h2 em { font-style:italic; color:var(--mint); }
+        .left-hero p { color:rgba(255,255,255,0.45); font-size:0.9rem; line-height:1.7; max-width:300px; }
 
-        .form-label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); margin-bottom: 0.3rem; }
-        .form-control {
-            border-radius: 10px;
-            border: 1.5px solid #e0e0e0;
-            padding: 0.7rem 1rem;
-            font-size: 0.9rem;
-            font-family: 'DM Sans', sans-serif;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            background: #fff;
-        }
-        .form-control:focus { border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(45,106,79,0.1); outline: none; }
+        .left-features { z-index:1; display:flex; flex-direction:column; gap:0.7rem; }
+        .feat-item { display:flex; align-items:center; gap:0.7rem; }
+        .feat-dot { width:6px; height:6px; border-radius:50%; background:var(--mint); flex-shrink:0; }
+        .feat-txt { color:rgba(255,255,255,0.6); font-size:0.84rem; }
 
-        .input-group-text {
-            background: var(--cream);
-            border: 1.5px solid #e0e0e0;
-            border-right: none;
-            border-radius: 10px 0 0 10px;
-            color: var(--text-muted);
-        }
-        .input-group .form-control { border-left: none; border-radius: 0 10px 10px 0; }
-        .input-group .form-control:focus { border-color: var(--green-mid); }
+        /* RIGHT */
+        .right { background:var(--cream); display:flex; align-items:center; justify-content:center; padding:3rem 2.5rem; }
+        .form-box { width:100%; max-width:380px; animation:slideIn 0.45s cubic-bezier(0.16,1,0.3,1) forwards; }
+        @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
 
-        .btn-login {
-            background: var(--green-mid);
-            color: #fff;
-            border: none;
-            border-radius: 50px;
-            width: 100%;
-            padding: 0.8rem;
-            font-weight: 700;
-            font-size: 1rem;
-            font-family: 'DM Sans', sans-serif;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 0.5rem;
-        }
-        .btn-login:hover { background: var(--green-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(45,106,79,0.3); }
-        .btn-login:active { transform: scale(0.98); }
+        .form-eyebrow { display:inline-flex; align-items:center; gap:0.4rem; background:#fff; color:var(--sage); font-size:0.7rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:0.3rem 0.8rem; border-radius:50px; border:1px solid var(--border); margin-bottom:1.5rem; }
+        .form-title { font-family:'Fraunces',serif; font-size:2rem; font-weight:900; color:var(--ink); letter-spacing:-0.5px; margin-bottom:0.3rem; }
+        .form-sub { color:var(--mist); font-size:0.88rem; margin-bottom:2rem; }
 
-        .divider { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
-        .divider hr { flex: 1; border-color: #e0e0e0; }
-        .divider span { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+        .alert-err { background:#fff0ed; border:1px solid #ffc4b0; color:var(--ember); border-radius:10px; padding:0.7rem 1rem; font-size:0.83rem; font-weight:500; margin-bottom:1.3rem; display:flex; align-items:center; gap:0.5rem; }
 
-        .footer-link { text-align: center; font-size: 0.88rem; color: var(--text-muted); margin-top: 1.5rem; }
-        .footer-link a { color: var(--green-mid); font-weight: 600; text-decoration: none; }
-        .footer-link a:hover { color: var(--green-dark); text-decoration: underline; }
+        .field-group { margin-bottom:1.2rem; }
+        .field-label { display:block; font-size:0.78rem; font-weight:600; color:var(--ink); margin-bottom:0.35rem; }
+        .field-wrap { position:relative; }
+        .field-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--mist); }
+        .field-input { width:100%; background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:0.75rem 1rem 0.75rem 2.6rem; font-size:0.9rem; font-family:'Satoshi',sans-serif; color:var(--ink); outline:none; transition:all 0.2s; }
+        .field-input:focus { border-color:var(--sage); box-shadow:0 0 0 3px rgba(58,148,96,0.1); }
+        .field-input::placeholder { color:#bbb5a8; }
 
-        .alert-custom {
-            background: #fff3f0;
-            border: 1.5px solid #ffc4b5;
-            color: var(--accent);
-            border-radius: 10px;
-            padding: 0.7rem 1rem;
-            font-size: 0.88rem;
-            font-weight: 500;
-            margin-bottom: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .btn-submit { width:100%; background:var(--forest); color:#fff; border:none; border-radius:12px; padding:0.85rem; font-size:0.92rem; font-weight:700; font-family:'Satoshi',sans-serif; cursor:pointer; transition:all 0.25s; margin-top:0.5rem; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+        .btn-submit:hover { background:var(--leaf); transform:translateY(-2px); box-shadow:0 10px 28px rgba(15,35,24,0.25); }
+        .btn-submit .arr { transition:transform 0.2s; }
+        .btn-submit:hover .arr { transform:translateX(4px); }
 
-        /* MOBILE */
-        @media(max-width: 768px) {
-            .left-panel { display: none; }
-            .right-panel { padding: 2rem 1.5rem; }
-        }
+        .divider { display:flex; align-items:center; gap:0.8rem; margin:1.5rem 0 1.2rem; }
+        .divider hr { flex:1; border:none; border-top:1.5px solid var(--border); }
+        .divider span { font-size:0.72rem; color:var(--mist); }
+
+        .alt-link { text-align:center; font-size:0.84rem; color:var(--mist); }
+        .alt-link a { color:var(--sage); font-weight:700; text-decoration:none; transition:color 0.2s; }
+        .alt-link a:hover { color:var(--leaf); }
+
+        @media(max-width:768px) { body{grid-template-columns:1fr;} .left{display:none;} .right{padding:2rem 1.5rem;} }
     </style>
 </head>
 <body>
 
-<%-- LEFT PANEL --%>
-<div class="left-panel">
-    <div class="left-logo">🌿</div>
-    <div class="left-brand">Green<span>Cart</span></div>
-    <p class="left-tagline">Fresh groceries delivered straight from the farm to your door.</p>
-    <ul class="left-features">
-        <li><span>🥦</span> 100% Fresh & Organic</li>
-        <li><span>🚚</span> Free Delivery on All Orders</li>
-        <li><span>💰</span> Best Prices Guaranteed</li>
-        <li><span>🔒</span> Safe & Secure Payments</li>
-    </ul>
+<div class="left">
+    <div class="left-brand">
+        <div class="brand-leaf">🌿</div>
+        <div class="brand-txt">Green<em>Cart</em></div>
+    </div>
+    <div class="left-hero">
+        <h2>Good food,<br><em>delivered.</em></h2>
+        <p>Fresh organic groceries from local farms, straight to your doorstep every day.</p>
+    </div>
+    <div class="left-features">
+        <div class="feat-item"><div class="feat-dot"></div><span class="feat-txt">100% Fresh & Organic produce</span></div>
+        <div class="feat-item"><div class="feat-dot"></div><span class="feat-txt">Free delivery on every order</span></div>
+        <div class="feat-item"><div class="feat-dot"></div><span class="feat-txt">Farm to doorstep guarantee</span></div>
+        <div class="feat-item"><div class="feat-dot"></div><span class="feat-txt">Secure & encrypted checkout</span></div>
+    </div>
 </div>
 
-<%-- RIGHT PANEL --%>
-<div class="right-panel">
+<div class="right">
     <div class="form-box">
-
-        <h2 class="form-title">Welcome 👋</h2>
-        <p class="form-subtitle">Login to your Green Cart account</p>
+        <div class="form-eyebrow">Welcome back</div>
+        <h1 class="form-title">Sign in</h1>
+        <p class="form-sub">Enter your credentials to continue</p>
 
         <%
             String error = (String) request.getAttribute("error");
-            if (error != null) {
+            if(error != null) {
         %>
-        <div class="alert-custom">⚠️ <%= error %></div>
-        <%
-            }
-        %>
+        <div class="alert-err">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            <%= error %>
+        </div>
+        <% } %>
 
         <form action="<%=request.getContextPath()%>/logForm" method="post">
-
-            <div class="mb-3">
-                <label class="form-label">Email Address</label>
-                <div class="input-group">
-                    <span class="input-group-text">✉️</span>
-                    <input type="email" name="email" class="form-control"
-                           placeholder="you@example.com" required>
+            <div class="field-group">
+                <label class="field-label">Email Address</label>
+                <div class="field-wrap">
+                    <svg class="field-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <input type="email" name="email" class="field-input" placeholder="you@example.com" required autocomplete="email">
                 </div>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <div class="input-group">
-                    <span class="input-group-text">🔒</span>
-                    <input type="password" name="password" class="form-control"
-                           placeholder="Enter your password" required>
+            <div class="field-group">
+                <label class="field-label">Password</label>
+                <div class="field-wrap">
+                    <svg class="field-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" name="password" class="field-input" placeholder="••••••••" required autocomplete="current-password">
                 </div>
             </div>
-
-            <button type="submit" class="btn-login">Login →</button>
+            <button type="submit" class="btn-submit">
+                Sign in
+                <svg class="arr" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </button>
         </form>
 
-        <div class="divider">
-            <hr><span>New to Green Cart?</span><hr>
-        </div>
-
-        <div class="footer-link">
-            Don't have an account?
-            <a href="<%=request.getContextPath()%>/views/user/register.jsp">Register Here</a>
-        </div>
-
+        <div class="divider"><hr><span>New to GreenCart?</span><hr></div>
+        <div class="alt-link">Don't have an account? <a href="<%=request.getContextPath()%>/views/user/register.jsp">Create one free</a></div>
     </div>
 </div>
 
