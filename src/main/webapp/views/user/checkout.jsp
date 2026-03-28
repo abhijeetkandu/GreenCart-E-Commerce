@@ -259,8 +259,8 @@
         <p class="success-sub">Thank you for shopping with <strong>Green Cart</strong> 🌿</p>
         <p class="success-sub">Your fresh groceries are on their way!</p>
         <p class="order-id-text">Order ID: <span id="displayOrderId"></span></p>
-        <a href="<%=request.getContextPath()%>/views/home.jsp" class="btn-home">🌿 Back to Home</a>
-        <a href="<%=request.getContextPath()%>/views/orders.jsp" class="btn-orders">📦 My Orders</a>
+        <a href="<%=request.getContextPath()%>/views/user/home.jsp" class="btn-home">🌿 Back to Home</a>
+        <a href="<%=request.getContextPath()%>/views/user/orders.jsp" class="btn-orders">📦 My Orders</a>
     </div>
 </div>
 
