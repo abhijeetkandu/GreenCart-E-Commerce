@@ -1,0 +1,469 @@
+<%@ page import="java.util.*" %>
+<%@ page import="java.sql.*" %>
+<%@ page import="com.ecommerce.model.DbConnection" %>
+<%@ page contentType="text/html" pageEncoding="UTF-8"%>
+
+<%
+    Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("cart");
+    if (cart == null) {
+        cart = new HashMap<>();
+        session.setAttribute("cart", cart);
+    }
+
+    Connection conn = DbConnection.getConnection();
+    PreparedStatement ps = conn.prepareStatement("SELECT * FROM products");
+    ResultSet rs = ps.executeQuery();
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Cart – Fresh Groceries</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --green-dark:  #1a3c2b;
+            --green-mid:   #2d6a4f;
+            --green-light: #52b788;
+            --cream:       #f5f0e8;
+            --warm-white:  #fdfaf5;
+            --accent:      #e76f51;
+            --text-dark:   #1a1a1a;
+            --text-muted:  #7a7a6a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--warm-white); color: var(--text-dark); overflow-x: hidden; }
+
+        /* NAVBAR */
+        .navbar-custom { background: var(--green-dark); padding: 0.9rem 0; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 20px rgba(0,0,0,0.25); }
+        .brand-text { font-family: 'Playfair Display', serif; font-size: 1.7rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .brand-dot { color: var(--green-light); }
+        .leaf-icon { font-size: 1.4rem; margin-right: 6px; }
+        .btn-cart { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 0.45rem 1.2rem; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .btn-cart:hover { background: #cf5a3b; color: #fff; transform: translateY(-1px); }
+        .btn-admin-link { color: rgba(255,255,255,0.6); font-size: 0.82rem; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; padding: 0.35rem 0.9rem; transition: all 0.2s; }
+        .btn-admin-link:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+
+        /* HERO */
+        .hero { background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 60%, var(--green-light) 100%); padding: 4rem 0 3rem; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; width: 500px; height: 500px; background: rgba(255,255,255,0.04); border-radius: 50%; top: -150px; right: -100px; }
+        .hero::after  { content: ''; position: absolute; width: 300px; height: 300px; background: rgba(255,255,255,0.04); border-radius: 50%; bottom: -80px; left: -60px; }
+        .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 1rem; }
+        .hero-title span { color: var(--green-light); }
+        .hero-subtitle { color: rgba(255,255,255,0.75); font-size: 1.05rem; font-weight: 300; max-width: 420px; }
+        .hero-badge { display: inline-block; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 0.78rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 0.3rem 0.9rem; border-radius: 50px; margin-bottom: 1.2rem; }
+        .hero-emojis { font-size: 3.5rem; line-height: 1; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2)); }
+
+        /* SECTION */
+        .section-header { padding: 3rem 0 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--green-dark); }
+        .section-line { flex: 1; height: 2px; background: linear-gradient(to right, var(--green-light), transparent); margin-left: 1.2rem; }
+
+        /* PRODUCT CARD */
+        .product-card { background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.07); transition: transform 0.25s, box-shadow 0.25s; height: 100%; border: 1px solid rgba(0,0,0,0.05); }
+        .product-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,0.13); }
+        .carousel-wrapper { position: relative; overflow: hidden; background: var(--cream); }
+        .carousel-wrapper img { height: 210px; width: 100%; object-fit: cover; transition: transform 0.4s; }
+        .product-card:hover .carousel-wrapper img { transform: scale(1.04); }
+        .card-body-custom { padding: 1.1rem 1.2rem 1.3rem; }
+        .product-name { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--green-dark); margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .product-price { font-size: 1.15rem; font-weight: 700; color: var(--green-mid); margin-bottom: 0.8rem; }
+        .product-price span { font-size: 0.8rem; font-weight: 400; color: var(--text-muted); }
+
+        /* CART BUTTONS */
+        .btn-add { background: var(--green-mid); color: #fff; border: none; border-radius: 50px; width: 100%; padding: 0.55rem; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+        .btn-add:hover { background: var(--green-dark); }
+        .btn-add:active { transform: scale(0.97); }
+        .qty-controls { display: flex; align-items: center; justify-content: center; background: var(--cream); border-radius: 50px; overflow: hidden; border: 1px solid rgba(0,0,0,0.08); }
+        .btn-qty { border: none; background: transparent; color: var(--green-dark); font-size: 1.1rem; font-weight: 700; padding: 0.4rem 1rem; transition: background 0.15s; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+        .btn-qty:hover { background: rgba(0,0,0,0.06); }
+        .qty-num { font-weight: 700; font-size: 1rem; color: var(--green-dark); min-width: 28px; text-align: center; }
+
+        /* STOCK ALERT */
+        .stock-alert { background: #fff3f0; border: 1px solid #ffc4b5; color: var(--accent); border-radius: 8px; padding: 0.35rem 0.6rem; font-size: 0.78rem; font-weight: 500; margin-bottom: 0.6rem; text-align: center; display: none; }
+
+        /* OWL */
+        .owl-nav { position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); pointer-events: none; padding: 0 6px; }
+        .owl-nav button { pointer-events: all; background: rgba(26,60,43,0.7) !important; color: white !important; border-radius: 50% !important; width: 30px !important; height: 30px !important; font-size: 0.8rem !important; display: flex !important; align-items: center; justify-content: center; border: none !important; transition: background 0.2s !important; }
+        .owl-nav button:hover { background: rgba(26,60,43,0.95) !important; }
+        .owl-dots { margin-top: 6px !important; }
+        .owl-dot span { background: #ccc !important; width: 6px !important; height: 6px !important; }
+        .owl-dot.active span { background: var(--green-mid) !important; }
+
+        /* ANIMATIONS */
+        @keyframes cartBounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
+        .cart-bounce { animation: cartBounce 0.35s ease; }
+        .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp 0.5s forwards; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* FOOTER */
+        .footer { background: var(--green-dark); color: rgba(255,255,255,0.6); text-align: center; padding: 1.5rem; margin-top: 4rem; font-size: 0.85rem; }
+        .footer strong { color: var(--green-light); }
+    </style>
+</head>
+<body>
+
+<%-- NAVBAR --%>
+<nav class="navbar-custom">
+    <div class="container d-flex align-items-center justify-content-between">
+        <a href="#" class="text-decoration-none d-flex align-items-center">
+            <span class="leaf-icon">🌿</span>
+            <span class="brand-text">Green<span class="brand-dot">Cart</span></span>
+        </a>
+        <div class="d-flex align-items-center gap-3">
+            <a href="<%=request.getContextPath()%>/views/admin/adminlogin.jsp" class="btn-admin-link">Admin</a>
+            <a href="cart.jsp" class="btn-cart" id="cartBtn">
+                🛒 Cart (<span id="cartCount"><%= cart.size() %></span>)
+            </a>
+        </div>
+    </div>
+</nav>
+
+<%-- HERO --%>
+<div class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <div class="hero-badge">🌱 Farm to Doorstep</div>
+                <h1 class="hero-title">Fresh &amp; <span>Organic</span><br>Groceries</h1>
+                <p class="hero-subtitle">Handpicked seasonal produce delivered fresh. No middlemen, just nature's best straight to your home.</p>
+            </div>
+            <div class="col-md-5 text-center mt-4 mt-md-0">
+                <div class="hero-emojis">🥦 🍅 🥕 🧅</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%-- PRODUCTS --%>
+<div class="container">
+    <div class="section-header">
+        <h2 class="section-title">Our Products</h2>
+        <div class="section-line"></div>
+    </div>
+
+    <div class="row g-4 pb-4">
+    <%
+        int cardIndex = 0;
+        while (rs.next()) {
+            int pid      = rs.getInt("id");
+            String name  = rs.getString("name");
+            double price = rs.getDouble("price");
+            int qty      = cart.getOrDefault(name, 0);
+            int delay    = cardIndex * 80;
+            cardIndex++;
+            // Safe name for use in JS data attributes
+            String safeName = name.replace("\"", "&quot;").replace("'", "&#39;");
+    %>
+        <div class="col-6 col-md-4 col-lg-3 fade-up" style="animation-delay:<%= delay %>ms">
+            <div class="product-card">
+
+                <div class="carousel-wrapper">
+                    <div class="owl-carousel product-carousel">
+                    <%
+                        PreparedStatement imgPs = conn.prepareStatement(
+                            "SELECT image_url FROM product_images WHERE product_id=?");
+                        imgPs.setInt(1, pid);
+                        ResultSet imgRs = imgPs.executeQuery();
+                        boolean hasImage = false;
+                        while (imgRs.next()) {
+                            hasImage = true;
+                            String imgPath = imgRs.getString("image_url");
+                            // ✅ Cloudinary URLs start with https — use directly
+                            // Local paths like images/file.jpg — prepend contextPath
+                            String imgSrc = imgPath.startsWith("http")
+                                ? imgPath
+                                : request.getContextPath() + "/" + imgPath;
+                    %>
+                        <div><img src="<%= imgSrc %>" alt="<%= safeName %>"></div>
+                    <%
+                        }
+                        if (!hasImage) {
+                    %>
+                        <div><img src="https://via.placeholder.com/300x210/e9f5ee/2d6a4f?text=No+Image" alt="No image"></div>
+                    <%
+                        }
+                        imgRs.close(); imgPs.close();
+                    %>
+                    </div>
+                </div>
+
+                <div class="card-body-custom">
+                    <div class="product-name"><%= name %></div>
+                    <div class="product-price">₹<%= price %> <span>/ unit</span></div>
+
+                    <%-- Stock alert — shown via JS, hidden by default --%>
+                    <div class="stock-alert" id="alert-<%= pid %>"></div>
+
+                    <%-- Cart controls — AJAX, no page refresh --%>
+                    <div id="cart-control-<%= pid %>">
+                    <% if (qty == 0) { %>
+                        <button class="btn-add"
+                                data-name="<%= safeName %>"
+                                data-pid="<%= pid %>"
+                                onclick="updateCart(this, 'increase')">
+                            + Add to Cart
+                        </button>
+                    <% } else { %>
+                        <div class="qty-controls">
+                            <button class="btn-qty"
+                                    data-name="<%= safeName %>"
+                                    data-pid="<%= pid %>"
+                                    onclick="updateCart(this, 'decrease')">−</button>
+                            <span class="qty-num"><%= qty %></span>
+                            <button class="btn-qty"
+                                    data-name="<%= safeName %>"
+                                    data-pid="<%= pid %>"
+                                    onclick="updateCart(this, 'increase')">+</button>
+                        </div>
+                    <% } %>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    <%
+        }
+        rs.close(); ps.close(); conn.close();
+    %>
+    </div>
+</div>
+
+<div class="footer">
+    <strong>Green Cart</strong> &nbsp;·&nbsp; Fresh produce, happy homes 🌿
+</div>
+
+<script>
+    var contextPath = '<%=request.getContextPath()%>';
+
+   
+    function updateCart(btn, action) {
+        var productName = btn.getAttribute('data-name');
+        var pid         = btn.getAttribute('data-pid');
+
+        $.ajax({
+            url:      contextPath + '/updateQuantity',
+            type:     'POST',
+            dataType: 'text',
+            data:     { productName: productName, action: action, ajax: 'true' },
+
+            success: function(response) {
+                var parts    = response.split('|');
+                var status   = parts[0];
+                var qty      = parseInt(parts[1]);
+                var cartSize = parseInt(parts[2]);
+                var message  = parts[3] || '';
+
+                var alertDiv   = document.getElementById('alert-'        + pid);
+                var controlDiv = document.getElementById('cart-control-' + pid);
+
+                if (status === 'error') {
+                    // Show inline stock alert — no page refresh
+                    alertDiv.textContent   = '⚠️ ' + message;
+                    alertDiv.style.display = 'block';
+                    setTimeout(function(){ alertDiv.style.display = 'none'; }, 3000);
+                } else {
+                    alertDiv.style.display = 'none';
+
+                    // Update cart count in navbar
+                    document.getElementById('cartCount').textContent = cartSize;
+
+                    // Bounce animation on cart button
+                    var cartBtn = document.getElementById('cartBtn');
+                    cartBtn.classList.remove('cart-bounce');
+                    void cartBtn.offsetWidth;
+                    cartBtn.classList.add('cart-bounce');
+
+                    // Swap Add to Cart / qty controls instantly
+                    if (qty === 0) {
+                        controlDiv.innerHTML =
+                            '<button class="btn-add" data-name="' + productName +
+                            '" data-pid="' + pid +
+                            '" onclick="updateCart(this,\'increase\')">+ Add to Cart</button>';
+                    } else {
+                        controlDiv.innerHTML =
+                            '<div class="qty-controls">' +
+                                '<button class="btn-qty" data-name="' + productName +
+                                '" data-pid="' + pid +
+                                '" onclick="updateCart(this,\'decrease\')">−</button>' +
+                                '<span class="qty-num">' + qty + '</span>' +
+                                '<button class="btn-qty" data-name="' + productName +
+                                '" data-pid="' + pid +
+                                '" onclick="updateCart(this,\'increase\')">+</button>' +
+                            '</div>';
+                    }
+                }
+            },
+
+            error: function() {
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    }
+
+ 
+    $(document).ready(function () {
+        $('.product-carousel').owlCarousel({
+            items: 1,
+            loop: true,
+            nav: true,
+            dots: true,
+            autoplay: true,
+            autoplayTimeout: 2500,
+            autoplayHoverPause: true
+        });
+    });
+</script>
+<%-- GREENCART CHATBOT --%>
+<style>
+  #gc-bubble {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: #2d6a4f; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(45,106,79,0.45);
+    transition: background 0.2s, transform 0.2s; z-index: 9999;
+  }
+  #gc-bubble:hover { background: #1a3c2b; transform: scale(1.07); }
+  #gc-win {
+    position: fixed; bottom: 94px; right: 28px;
+    width: 360px; max-height: 520px;
+    background: #fdfaf5; border-radius: 18px;
+    border: 1px solid rgba(45,106,79,0.15);
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15); z-index: 9998;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  #gc-win.gc-hidden { opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.97); }
+  .gc-header { background: #1a3c2b; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .gc-icon { width: 36px; height: 36px; background: #52b788; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .gc-header h4 { font-family: 'Playfair Display', serif; color: #fff; font-size: 15px; font-weight: 700; margin: 0; }
+  .gc-header p { color: rgba(255,255,255,0.6); font-size: 11px; margin: 0; }
+  .gc-dot { width: 8px; height: 8px; background: #52b788; border-radius: 50%; margin-left: auto; }
+  .gc-close { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.6); font-size: 18px; }
+  .gc-close:hover { color: #fff; }
+  .gc-msgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .gc-msgs::-webkit-scrollbar { width: 4px; }
+  .gc-msgs::-webkit-scrollbar-thumb { background: rgba(45,106,79,0.2); border-radius: 4px; }
+  .gc-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; color: #52b788; }
+  .gc-lbl.u { color: rgba(255,255,255,0.7); text-align: right; }
+  .gc-msg { max-width: 82%; padding: 9px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; word-break: break-word; }
+  .gc-msg.b { background: #fff; color: #1a1a1a; border: 1px solid rgba(45,106,79,0.12); border-bottom-left-radius: 4px; align-self: flex-start; }
+  .gc-msg.u { background: #2d6a4f; color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+  .gc-typing { display: flex; gap: 4px; align-items: center; padding: 10px 13px; background: #fff; border: 1px solid rgba(45,106,79,0.12); border-radius: 14px; border-bottom-left-radius: 4px; align-self: flex-start; }
+  .gc-typing span { width: 6px; height: 6px; background: #52b788; border-radius: 50%; animation: gcbounce 1.2s infinite; }
+  .gc-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .gc-typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes gcbounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+  .gc-chips { padding: 0 14px 10px; display: flex; flex-wrap: wrap; gap: 6px; background: #fdfaf5; }
+  .gc-chip { background: #f5f0e8; color: #1a3c2b; border: 1px solid rgba(45,106,79,0.18); border-radius: 50px; padding: 5px 12px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.15s; font-family: 'DM Sans', sans-serif; }
+  .gc-chip:hover { background: #52b788; color: #fff; border-color: #52b788; }
+  .gc-input-area { padding: 10px 12px 12px; background: #fff; border-top: 1px solid rgba(45,106,79,0.1); display: flex; gap: 8px; align-items: center; }
+  #gc-input { flex: 1; border: 1px solid rgba(45,106,79,0.2); border-radius: 50px; padding: 9px 16px; font-size: 13.5px; font-family: 'DM Sans', sans-serif; outline: none; background: #fdfaf5; color: #1a1a1a; }
+  #gc-input:focus { border-color: #2d6a4f; }
+  #gc-send { width: 38px; height: 38px; border-radius: 50%; background: #e76f51; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  #gc-send:hover { background: #cf5a3b; }
+  .gc-powered { text-align: center; font-size: 10px; color: #7a7a6a; padding: 4px; background: #fff; }
+</style>
+
+<div id="gc-win" class="gc-hidden">
+  <div class="gc-header">
+    <div class="gc-icon">🌿</div>
+    <div>
+      <h4>GreenCart Assistant</h4>
+      <p>Ask me anything about our store</p>
+    </div>
+    <div class="gc-dot"></div>
+    <button class="gc-close" onclick="gcToggle()">✕</button>
+  </div>
+  <div class="gc-msgs" id="gc-msgs">
+    <div>
+      <div class="gc-lbl">GreenCart</div>
+      <div class="gc-msg b">👋 Hi! I'm your GreenCart assistant. Ask me about products, delivery, offers, or anything about the store!</div>
+    </div>
+  </div>
+  <div class="gc-chips" id="gc-chips">
+    <button class="gc-chip" onclick="gcSuggest('What products do you have?')">Products</button>
+    <button class="gc-chip" onclick="gcSuggest('How does delivery work?')">Delivery</button>
+    <button class="gc-chip" onclick="gcSuggest('Any offers today?')">Offers</button>
+    <button class="gc-chip" onclick="gcSuggest('How do I place an order?')">Place order</button>
+  </div>
+  <div class="gc-input-area">
+    <input type="text" id="gc-input" placeholder="Ask about GreenCart..." onkeydown="if(event.key==='Enter') gcSend()" />
+    <button id="gc-send" onclick="gcSend()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+  <div class="gc-powered">Powered by GreenCart AI</div>
+</div>
+
+<button id="gc-bubble" onclick="gcToggle()">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+</button>
+
+<script>
+  var gcOpen = false;
+  function gcToggle() {
+    gcOpen = !gcOpen;
+    var w = document.getElementById('gc-win');
+    if (gcOpen) w.classList.remove('gc-hidden');
+    else w.classList.add('gc-hidden');
+  }
+  function gcAppend(text, type) {
+    var msgs = document.getElementById('gc-msgs');
+    var wrapper = document.createElement('div');
+    var lbl = document.createElement('div');
+    lbl.className = 'gc-lbl ' + (type === 'u' ? 'u' : '');
+    lbl.textContent = type === 'b' ? 'GreenCart' : 'You';
+    var msg = document.createElement('div');
+    msg.className = 'gc-msg ' + type;
+    msg.textContent = text;
+    wrapper.appendChild(lbl);
+    wrapper.appendChild(msg);
+    msgs.appendChild(wrapper);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function gcTyping() {
+    var msgs = document.getElementById('gc-msgs');
+    var el = document.createElement('div');
+    el.className = 'gc-typing'; el.id = 'gc-typing';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function gcRemoveTyping() { var el = document.getElementById('gc-typing'); if (el) el.remove(); }
+  function gcSend() {
+    var input = document.getElementById('gc-input');
+    var query = input.value.trim();
+    if (!query) return;
+    input.value = '';
+    document.getElementById('gc-chips').style.display = 'none';
+    gcAppend(query, 'u');
+    gcTyping();
+    fetch('https://ai-chatbot-jpq8.onrender.com/ai/groq?query=' + encodeURIComponent(query), { method: 'POST' })
+      .then(function(r) { return r.text(); })
+      .then(function(t) { gcRemoveTyping(); gcAppend(t, 'b'); })
+      .catch(function() { gcRemoveTyping(); gcAppend('Sorry, could not connect. Please try again!', 'b'); });
+  }
+  function gcSuggest(text) {
+    document.getElementById('gc-input').value = text;
+    gcSend();
+  }
+</script>
+</body>
+</html>
