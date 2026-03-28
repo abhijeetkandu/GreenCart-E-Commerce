@@ -277,5 +277,9 @@
         }
     }
 </script>
+<script>
+    var TRACK_URL = '<%=request.getContextPath()%>/track';
+</script>
+<script src="<%=request.getContextPath()%>/js/tracking.js"></script>
 </body>
 </html>
