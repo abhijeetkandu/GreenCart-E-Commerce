@@ -970,8 +970,14 @@
                     setTimeout(function(){ alertDiv.style.display = 'none'; }, 3000);
                 } else {
                     alertDiv.style.display = 'none';
-                    window.trackCartEvent(action, productName);
                     document.getElementById('cartCount').textContent = cartSize;
+                    try{
+                        if(typeof window.trackCartEvent === 'function'){
+                            window.trackCartEvent(action, productName);
+                        }
+                    }catch(e){
+                        console.warn('Tracking error:', e);
+                    }
                     var cb = document.getElementById('cartBtn');
                     cb.classList.remove('cart-pop'); void cb.offsetWidth; cb.classList.add('cart-pop');
                     if (qty === 0) {
