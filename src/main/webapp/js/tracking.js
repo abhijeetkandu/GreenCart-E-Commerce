@@ -1,64 +1,76 @@
-// ── Green Cart User Behaviour Tracker ──────────────────────────────
+// ── GreenCart Tracker ─────────────────────────────────────────────
+// Location: webapp/js/tracking.js (USER project only)
+// NO meta tags needed — works out of the box on any JSP page
+
 (function () {
+    var TRACK_URL  = '/track'; // TrackingServlet is on user site
+    var pageStart  = Date.now();
+    var sessionKey = 'gc_session_sent';
 
-    var pageStart = Date.now();
-
-    // Get context path from meta tag in <head>
-    var metaTag = document.querySelector('meta[name="contextPath"]');
-    var CONTEXT_PATH = metaTag ? metaTag.getAttribute('content') : '';
-    var TRACK_URL = CONTEXT_PATH + '/track';
-
-    // Detect device type
-    function getDeviceType() {
-        var ua = navigator.userAgent.toLowerCase();
-        if (/tablet|ipad/.test(ua)) return 'Tablet';
-        if (/mobile|android|iphone/.test(ua)) return 'Mobile';
+    // ── Device detection ───────────────────────────────────────────
+    function getDevice() {
+        var ua = navigator.userAgent;
+        if (/iPad|Tablet/i.test(ua))         return 'Tablet';
+        if (/Mobi|Android|iPhone/i.test(ua)) return 'Mobile';
         return 'Desktop';
     }
 
-    // Send as FormData — matches req.getParameter() in servlet
+    // ── Send POST to TrackingServlet ───────────────────────────────
     function send(params) {
-        var fd = new FormData();
-        for (var k in params) fd.append(k, params[k]);
         try {
-            fetch(TRACK_URL, { method: 'POST', body: fd });
-        } catch (e) {}
+            var fd = new FormData();
+            for (var k in params) {
+                if (params[k] !== null && params[k] !== undefined) {
+                    fd.append(k, String(params[k]));
+                }
+            }
+            fetch(TRACK_URL, { method: 'POST', body: fd })
+                .catch(function(e) {
+                    console.warn('[GCTrack] send failed:', e);
+                });
+        } catch(e) {
+            console.warn('[GCTrack] error:', e);
+        }
     }
 
-    // 1. Session Start
-    send({
-        action:     'session_start',
-        deviceType: getDeviceType(),
-        pageUrl:    window.location.pathname
-    });
+    // ── 1. Session Start ───────────────────────────────────────────
+    // sessionStorage fires once per tab — not on every page reload
+    if (!sessionStorage.getItem(sessionKey)) {
+        sessionStorage.setItem(sessionKey, '1');
+        send({
+            action:     'session_start',
+            deviceType: getDevice(),
+            pageUrl:    window.location.pathname
+        });
+    }
 
-    // 2. Page Visit Event
+    // ── 2. Page Visit ──────────────────────────────────────────────
     send({
         action:     'event',
         eventType:  'page_visit',
-        eventData:  document.title,
+        eventData:  document.title || window.location.pathname,
         pageUrl:    window.location.pathname,
         timeOnPage: '0'
     });
 
-    // 3. Time on page + session end on leave
+    // ── 3. Time on page + session end on leave ─────────────────────
     window.addEventListener('beforeunload', function () {
-        var time = Math.round((Date.now() - pageStart) / 1000);
+        var secs = Math.round((Date.now() - pageStart) / 1000);
         send({
             action:     'event',
             eventType:  'time_on_page',
-            eventData:  document.title,
+            eventData:  document.title || window.location.pathname,
             pageUrl:    window.location.pathname,
-            timeOnPage: String(time)
+            timeOnPage: String(secs)
         });
         send({
             action:     'session_end',
-            timeOnPage: String(time),
+            timeOnPage: String(secs),
             pageUrl:    window.location.pathname
         });
     });
 
-    // 4. Product Click — works with .product-name inside .product-card
+    // ── 4. Product card click ──────────────────────────────────────
     document.addEventListener('click', function (e) {
         var card = e.target.closest('.product-card');
         if (card) {
@@ -75,7 +87,8 @@
         }
     });
 
-    // 5. Cart event — called from updateCart() in home.jsp
+    // ── 5. Add to Cart / Remove ────────────────────────────────────
+    // Called from updateCart() in home.jsp after AJAX success
     window.trackCartEvent = function (action, productName) {
         send({
             action:     'event',
@@ -86,7 +99,8 @@
         });
     };
 
-    // 6. Order placed — call this from checkout.jsp after order success
+    // ── 6. Order placed ────────────────────────────────────────────
+    // Call window.trackOrderPlaced(orderId) from order success page
     window.trackOrderPlaced = function (orderId) {
         send({
             action:     'event',

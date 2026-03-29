@@ -970,22 +970,45 @@
                     setTimeout(function(){ alertDiv.style.display = 'none'; }, 3000);
                 } else {
                     alertDiv.style.display = 'none';
+
+                    // ✅ UI updates FIRST — always runs
                     document.getElementById('cartCount').textContent = cartSize;
                     var cb = document.getElementById('cartBtn');
-                    cb.classList.remove('cart-pop'); void cb.offsetWidth; cb.classList.add('cart-pop');
+                    cb.classList.remove('cart-pop');
+                    void cb.offsetWidth;
+                    cb.classList.add('cart-pop');
+
                     if (qty === 0) {
-                        controlDiv.innerHTML = '<button class="btn-add-cart" data-name="' + productName + '" data-pid="' + pid + '" onclick="updateCart(this,\'increase\')"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Add to Cart</button>';
+                        controlDiv.innerHTML =
+                            '<button class="btn-add-cart" data-name="' + productName +
+                            '" data-pid="' + pid +
+                            '" onclick="updateCart(this,\'increase\')">' +
+                            '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">' +
+                            '<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>' +
+                            ' Add to Cart</button>';
                     } else {
-                        controlDiv.innerHTML = '<div class="qty-wrap"><button class="btn-qty" data-name="' + productName + '" data-pid="' + pid + '" onclick="updateCart(this,\'decrease\')">−</button><span class="qty-num">' + qty + '</span><button class="btn-qty" data-name="' + productName + '" data-pid="' + pid + '" onclick="updateCart(this,\'increase\')">+</button></div>';
+                        controlDiv.innerHTML =
+                            '<div class="qty-wrap">' +
+                            '<button class="btn-qty" data-name="' + productName +
+                            '" data-pid="' + pid +
+                            '" onclick="updateCart(this,\'decrease\')">−</button>' +
+                            '<span class="qty-num">' + qty + '</span>' +
+                            '<button class="btn-qty" data-name="' + productName +
+                            '" data-pid="' + pid +
+                            '" onclick="updateCart(this,\'increase\')">+</button>' +
+                            '</div>';
                     }
-                    try{
-                        if(typeof window.trackCartEvent === 'function'){
-                           window.trackCartEvent(action, productName);
+
+                    // ✅ Tracking AFTER UI — safe, never blocks cart
+                    try {
+                        if (typeof window.trackCartEvent === 'function') {
+                            window.trackCartEvent(action, productName);
                         }
-                    }catch(e){
-                        console.warn('Tracking error:', e);
+                    } catch(e) {
+                        console.warn('[GCTrack] cart track failed:', e);
                     }
                 }
+
             },
             error: function() { alert('Something went wrong. Please try again.'); }
         });
