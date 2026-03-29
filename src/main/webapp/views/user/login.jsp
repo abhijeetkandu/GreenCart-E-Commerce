@@ -130,9 +130,7 @@
         <div class="alt-link">Don't have an account? <a href="<%=request.getContextPath()%>/views/user/register.jsp">Create one free</a></div>
     </div>
 </div>
-<script>
-    var TRACK_URL = '<%=request.getContextPath()%>/track';
-</script>
+<meta name="contextPath" content="<%=request.getContextPath()%>">
 <script src="<%=request.getContextPath()%>/js/tracking.js"></script>
 </body>
 </html>

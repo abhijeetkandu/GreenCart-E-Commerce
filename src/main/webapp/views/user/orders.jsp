@@ -156,9 +156,7 @@
 </div>
 
 <div class="footer-simple"><strong>GreenCart</strong> · Fresh produce, happy homes 🌿</div>
-<script>
-    var TRACK_URL = '<%=request.getContextPath()%>/track';
-</script>
+<meta name="contextPath" content="<%=request.getContextPath()%>">
 <script src="<%=request.getContextPath()%>/js/tracking.js"></script>
 </body>
 </html>

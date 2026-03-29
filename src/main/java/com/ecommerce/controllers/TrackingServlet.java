@@ -20,75 +20,80 @@ public class TrackingServlet extends HttpServlet {
         resp.setContentType("text/plain");
         resp.setCharacterEncoding("UTF-8");
 
-        // ── Read params as form data (NOT JSON) ──────────────────────
-        String action      = req.getParameter("action");
-        String deviceType  = req.getParameter("deviceType");
-        String pageUrl     = req.getParameter("pageUrl");
-        String eventType   = req.getParameter("eventType");
-        String eventData   = req.getParameter("eventData");
-        String timeOnPage  = req.getParameter("timeOnPage");
+        String action     = req.getParameter("action");
+        String deviceType = req.getParameter("deviceType");
+        String pageUrl    = req.getParameter("pageUrl");
+        String eventType  = req.getParameter("eventType");
+        String eventData  = req.getParameter("eventData");
+        String timeOnPage = req.getParameter("timeOnPage");
 
-        HttpSession session  = req.getSession();
-        String sessionId     = session.getId();
-        Integer userId       = (Integer) session.getAttribute("userId");
-        String userEmail     = (String)  session.getAttribute("userEmail");
-        String ipAddress     = req.getRemoteAddr();
+        HttpSession session = req.getSession();
+        String sessionId    = session.getId();
+        Integer userId      = (Integer) session.getAttribute("userId");
+        String userEmail    = (String)  session.getAttribute("userEmail");
+        String ipAddress    = req.getRemoteAddr();
 
         Connection conn = null;
         try {
             conn = DbConnection.getConnection();
 
-            // ── SESSION START ──────────────────────────────────────────
+            // ── SESSION START ──────────────────────────────────────
             if ("session_start".equals(action)) {
-                // Only insert if session not already recorded
+                // Check if already exists
                 PreparedStatement checkPs = conn.prepareStatement(
-                        "SELECT id FROM user_sessions WHERE session_id=?");
+                        "SELECT id FROM user_sessions WHERE session_id = ?");
                 checkPs.setString(1, sessionId);
                 ResultSet checkRs = checkPs.executeQuery();
                 boolean exists = checkRs.next();
-                checkRs.close(); checkPs.close();
+                checkRs.close();
+                checkPs.close();
 
                 if (!exists) {
+                    // Only insert columns that exist in your table:
+                    // id, session_id, user_id, user_email, device_type, ip_address, started_at, ended_at, duration_seconds
                     PreparedStatement ps = conn.prepareStatement(
                             "INSERT INTO user_sessions " +
                                     "(session_id, user_id, user_email, device_type, ip_address) " +
                                     "VALUES (?, ?, ?, ?, ?)");
                     ps.setString(1, sessionId);
-                    ps.setObject(2, userId);
+                    if (userId != null) {
+                        ps.setInt(2, userId);
+                    } else {
+                        ps.setNull(2, Types.INTEGER);
+                    }
                     ps.setString(3, userEmail != null ? userEmail : "Guest");
-                    ps.setString(4, deviceType != null ? deviceType : "Unknown");
+                    ps.setString(4, deviceType != null ? deviceType : "Desktop");
                     ps.setString(5, ipAddress);
                     ps.executeUpdate();
                     ps.close();
                 }
             }
 
-            // ── SESSION END ────────────────────────────────────────────
+            // ── SESSION END ────────────────────────────────────────
             else if ("session_end".equals(action)) {
                 int dur = 0;
-                try { dur = Integer.parseInt(timeOnPage); } catch (Exception e) {}
+                try { dur = Integer.parseInt(timeOnPage); } catch (Exception ignored) {}
                 PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE user_sessions SET ended_at=NOW(), duration_seconds=? " +
-                                "WHERE session_id=?");
+                        "UPDATE user_sessions SET ended_at = NOW(), duration_seconds = ? " +
+                                "WHERE session_id = ?");
                 ps.setInt(1, dur);
                 ps.setString(2, sessionId);
                 ps.executeUpdate();
                 ps.close();
             }
 
-            // ── ANY EVENT ──────────────────────────────────────────────
+            // ── ANY EVENT ──────────────────────────────────────────
             else if ("event".equals(action)) {
                 int timeInt = 0;
-                try { timeInt = Integer.parseInt(timeOnPage); } catch (Exception e) {}
-
+                try { timeInt = Integer.parseInt(timeOnPage); } catch (Exception ignored) {}
                 PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO user_events " +
                                 "(session_id, event_type, event_data, page_url, time_on_page) " +
                                 "VALUES (?, ?, ?, ?, ?)");
                 ps.setString(1, sessionId);
-                ps.setString(2, eventType  != null ? eventType  : "unknown");
-                ps.setString(3, eventData  != null ? eventData  : "");
-                ps.setString(4, pageUrl    != null ? pageUrl    : "");
+                ps.setString(2, eventType != null ? eventType : "unknown");
+                ps.setString(3, eventData != null ? eventData : "");
+                ps.setString(4, pageUrl   != null ? pageUrl   : "");
                 ps.setInt(5, timeInt);
                 ps.executeUpdate();
                 ps.close();
@@ -98,9 +103,9 @@ public class TrackingServlet extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            resp.getWriter().write("error: " + e.getMessage());
+            resp.getWriter().write("error:" + e.getMessage());
         } finally {
-            try { if (conn != null) conn.close(); } catch (Exception e) {}
+            try { if (conn != null) conn.close(); } catch (Exception ignored) {}
         }
     }
 }

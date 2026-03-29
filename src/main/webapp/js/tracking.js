@@ -1,18 +1,14 @@
 // ── Green Cart User Behaviour Tracker ──────────────────────────────
-// Uses form data (NOT JSON) to match TrackingServlet
-
 (function () {
 
-    var pageStart    = Date.now();
-    var sessionStart = Date.now();
+    var pageStart = Date.now();
 
-    // ── Get context path from meta tag ─────────────────────────────
-    var CONTEXT_PATH = document.querySelector('meta[name="contextPath"]')
-        ? document.querySelector('meta[name="contextPath"]').getAttribute('content')
-        : '';
+    // Get context path from meta tag in <head>
+    var metaTag = document.querySelector('meta[name="contextPath"]');
+    var CONTEXT_PATH = metaTag ? metaTag.getAttribute('content') : '';
     var TRACK_URL = CONTEXT_PATH + '/track';
 
-    // ── Detect device type ──────────────────────────────────────────
+    // Detect device type
     function getDeviceType() {
         var ua = navigator.userAgent.toLowerCase();
         if (/tablet|ipad/.test(ua)) return 'Tablet';
@@ -20,92 +16,83 @@
         return 'Desktop';
     }
 
-    // ── Send as form data (matches servlet getParameter) ───────────
+    // Send as FormData — matches req.getParameter() in servlet
     function send(params) {
-        var formData = new FormData();
-        for (var key in params) {
-            formData.append(key, params[key]);
-        }
+        var fd = new FormData();
+        for (var k in params) fd.append(k, params[k]);
         try {
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon(TRACK_URL, formData);
-            } else {
-                fetch(TRACK_URL, { method: 'POST', body: formData });
-            }
+            fetch(TRACK_URL, { method: 'POST', body: fd });
         } catch (e) {}
     }
 
-    // ── 1. Session Start ────────────────────────────────────────────
+    // 1. Session Start
     send({
         action:     'session_start',
         deviceType: getDeviceType(),
         pageUrl:    window.location.pathname
     });
 
-    // ── 2. Page Visit Event ─────────────────────────────────────────
+    // 2. Page Visit Event
     send({
-        action:    'event',
-        eventType: 'page_visit',
-        eventData: document.title,
-        pageUrl:   window.location.pathname,
+        action:     'event',
+        eventType:  'page_visit',
+        eventData:  document.title,
+        pageUrl:    window.location.pathname,
         timeOnPage: '0'
     });
 
-    // ── 3. Time on Page + Session End (on leave) ────────────────────
+    // 3. Time on page + session end on leave
     window.addEventListener('beforeunload', function () {
-        var timeOnPage = Math.round((Date.now() - pageStart) / 1000);
-        var totalTime  = Math.round((Date.now() - sessionStart) / 1000);
-
+        var time = Math.round((Date.now() - pageStart) / 1000);
         send({
-            action:    'event',
-            eventType: 'time_on_page',
-            eventData: document.title,
-            pageUrl:   window.location.pathname,
-            timeOnPage: String(timeOnPage)
+            action:     'event',
+            eventType:  'time_on_page',
+            eventData:  document.title,
+            pageUrl:    window.location.pathname,
+            timeOnPage: String(time)
         });
-
         send({
-            action:    'session_end',
-            timeOnPage: String(totalTime),
-            pageUrl:   window.location.pathname
+            action:     'session_end',
+            timeOnPage: String(time),
+            pageUrl:    window.location.pathname
         });
     });
 
-    // ── 4. Product Click Tracking ───────────────────────────────────
+    // 4. Product Click — works with .product-name inside .product-card
     document.addEventListener('click', function (e) {
         var card = e.target.closest('.product-card');
         if (card) {
             var nameEl = card.querySelector('.product-name');
             if (nameEl) {
                 send({
-                    action:    'event',
-                    eventType: 'product_click',
-                    eventData: nameEl.textContent.trim(),
-                    pageUrl:   window.location.pathname,
+                    action:     'event',
+                    eventType:  'product_click',
+                    eventData:  nameEl.textContent.trim(),
+                    pageUrl:    window.location.pathname,
                     timeOnPage: String(Math.round((Date.now() - pageStart) / 1000))
                 });
             }
         }
     });
 
-    // ── 5. Cart Event (called from updateCart in home.jsp) ──────────
+    // 5. Cart event — called from updateCart() in home.jsp
     window.trackCartEvent = function (action, productName) {
         send({
-            action:    'event',
-            eventType: action === 'increase' ? 'add_to_cart' : 'remove_from_cart',
-            eventData: productName,
-            pageUrl:   window.location.pathname,
+            action:     'event',
+            eventType:  action === 'increase' ? 'add_to_cart' : 'remove_from_cart',
+            eventData:  productName,
+            pageUrl:    window.location.pathname,
             timeOnPage: String(Math.round((Date.now() - pageStart) / 1000))
         });
     };
 
-    // ── 6. Order Placed (called from checkout.jsp) ──────────────────
-    window.trackOrderPlaced = function (orderId, total) {
+    // 6. Order placed — call this from checkout.jsp after order success
+    window.trackOrderPlaced = function (orderId) {
         send({
-            action:    'event',
-            eventType: 'order_placed',
-            eventData: 'Order:' + orderId + '|Total:' + total,
-            pageUrl:   window.location.pathname,
+            action:     'event',
+            eventType:  'order_placed',
+            eventData:  String(orderId),
+            pageUrl:    window.location.pathname,
             timeOnPage: String(Math.round((Date.now() - pageStart) / 1000))
         });
     };
