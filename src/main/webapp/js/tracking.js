@@ -1,29 +1,29 @@
-// tracking.js
 function getDeviceType() {
     var ua = navigator.userAgent.toLowerCase();
-    if (/mobile|android|iphone|ipad/.test(ua)) return "Mobile";
+
+    if (/tablet|ipad/.test(ua)) return "Tablet";
+    if (/mobile|android|iphone/.test(ua)) return "Mobile";
     return "Desktop";
 }
 
-// Call this on page load
+// SESSION + PAGE VIEW
 function trackSession() {
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             action: "session_start",
             deviceType: getDeviceType(),
             pageUrl: window.location.pathname
         })
-    }).then(res => console.log("Session tracked", res.status))
-      .catch(err => console.error("Tracking error", err));
+    });
 }
 
-// Track product click
+// PRODUCT CLICK
 function trackProductClick(productName) {
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             action: "product_click",
             productName: productName,
@@ -32,11 +32,24 @@ function trackProductClick(productName) {
     });
 }
 
-// Track order completion
+// ADD TO CART
+function trackAddToCart(productName) {
+    fetch("/track", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            action: "add_to_cart",
+            productName: productName,
+            pageUrl: window.location.pathname
+        })
+    });
+}
+
+// ORDER COMPLETE
 function trackOrderCompletion(orderId) {
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             action: "order_completed",
             orderId: orderId,
@@ -44,5 +57,18 @@ function trackOrderCompletion(orderId) {
         })
     });
 }
+
+// TIME TRACK
+let startTime = Date.now();
+
+window.addEventListener("beforeunload", function () {
+    let timeSpent = Math.floor((Date.now() - startTime) / 1000);
+
+    navigator.sendBeacon("/track", JSON.stringify({
+        action: "time_spent",
+        time: timeSpent,
+        pageUrl: window.location.pathname
+    }));
+});
 
 window.onload = trackSession;
