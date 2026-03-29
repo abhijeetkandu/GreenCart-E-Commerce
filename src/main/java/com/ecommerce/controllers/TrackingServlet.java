@@ -1,118 +1,106 @@
 package com.ecommerce.controllers;
 
 import com.ecommerce.model.DbConnection;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import org.cloudinary.json.JSONObject;
-
-import java.io.BufferedReader;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.util.stream.Collectors;
+import java.sql.*;
 
 @WebServlet("/track")
 public class TrackingServlet extends HttpServlet {
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        resp.setContentType("text/plain");
+        resp.setCharacterEncoding("UTF-8");
+
+        // ── Read params as form data (NOT JSON) ──────────────────────
+        String action      = req.getParameter("action");
+        String deviceType  = req.getParameter("deviceType");
+        String pageUrl     = req.getParameter("pageUrl");
+        String eventType   = req.getParameter("eventType");
+        String eventData   = req.getParameter("eventData");
+        String timeOnPage  = req.getParameter("timeOnPage");
+
+        HttpSession session  = req.getSession();
+        String sessionId     = session.getId();
+        Integer userId       = (Integer) session.getAttribute("userId");
+        String userEmail     = (String)  session.getAttribute("userEmail");
+        String ipAddress     = req.getRemoteAddr();
 
         Connection conn = null;
-        PreparedStatement ps = null;
-
         try {
-            BufferedReader reader = request.getReader();
-            String json = reader.lines().collect(Collectors.joining());
-            JSONObject obj = new JSONObject(json);
-
-            String action = obj.getString("action");
             conn = DbConnection.getConnection();
 
-            String sessionId = request.getSession().getId();
+            // ── SESSION START ──────────────────────────────────────────
+            if ("session_start".equals(action)) {
+                // Only insert if session not already recorded
+                PreparedStatement checkPs = conn.prepareStatement(
+                        "SELECT id FROM user_sessions WHERE session_id=?");
+                checkPs.setString(1, sessionId);
+                ResultSet checkRs = checkPs.executeQuery();
+                boolean exists = checkRs.next();
+                checkRs.close(); checkPs.close();
 
-            // 🔹 SESSION START (also track PAGE VIEW)
-            if (action.equals("session_start")) {
+                if (!exists) {
+                    PreparedStatement ps = conn.prepareStatement(
+                            "INSERT INTO user_sessions " +
+                                    "(session_id, user_id, user_email, device_type, ip_address) " +
+                                    "VALUES (?, ?, ?, ?, ?)");
+                    ps.setString(1, sessionId);
+                    ps.setObject(2, userId);
+                    ps.setString(3, userEmail != null ? userEmail : "Guest");
+                    ps.setString(4, deviceType != null ? deviceType : "Unknown");
+                    ps.setString(5, ipAddress);
+                    ps.executeUpdate();
+                    ps.close();
+                }
+            }
 
-                String deviceType = obj.getString("deviceType");
-                String pageUrl = obj.getString("pageUrl");
-
-                // Save session
-                ps = conn.prepareStatement(
-                        "INSERT INTO user_sessions (session_id, device_type, ip_address, started_at, page_url) VALUES (?, ?, ?, NOW(), ?)"
-                );
-                ps.setString(1, sessionId);
-                ps.setString(2, deviceType);
-                ps.setString(3, request.getRemoteAddr());
-                ps.setString(4, pageUrl);
+            // ── SESSION END ────────────────────────────────────────────
+            else if ("session_end".equals(action)) {
+                int dur = 0;
+                try { dur = Integer.parseInt(timeOnPage); } catch (Exception e) {}
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE user_sessions SET ended_at=NOW(), duration_seconds=? " +
+                                "WHERE session_id=?");
+                ps.setInt(1, dur);
+                ps.setString(2, sessionId);
                 ps.executeUpdate();
                 ps.close();
-
-                // ALSO track page view (IMPORTANT FOR FUNNEL)
-                ps = conn.prepareStatement(
-                        "INSERT INTO user_events (session_id, event_type, page_url) VALUES (?, ?, ?)"
-                );
-                ps.setString(1, sessionId);
-                ps.setString(2, "page_view");
-                ps.setString(3, pageUrl);
-                ps.executeUpdate();
             }
 
-            // 🔹 PRODUCT CLICK
-            else if (action.equals("product_click")) {
-                ps = conn.prepareStatement(
-                        "INSERT INTO user_events (session_id, event_type, page_url, event_data) VALUES (?, ?, ?, ?)"
-                );
+            // ── ANY EVENT ──────────────────────────────────────────────
+            else if ("event".equals(action)) {
+                int timeInt = 0;
+                try { timeInt = Integer.parseInt(timeOnPage); } catch (Exception e) {}
+
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO user_events " +
+                                "(session_id, event_type, event_data, page_url, time_on_page) " +
+                                "VALUES (?, ?, ?, ?, ?)");
                 ps.setString(1, sessionId);
-                ps.setString(2, "product_click");
-                ps.setString(3, obj.getString("pageUrl"));
-                ps.setString(4, obj.getString("productName"));
+                ps.setString(2, eventType  != null ? eventType  : "unknown");
+                ps.setString(3, eventData  != null ? eventData  : "");
+                ps.setString(4, pageUrl    != null ? pageUrl    : "");
+                ps.setInt(5, timeInt);
                 ps.executeUpdate();
+                ps.close();
             }
 
-            // 🔹 ADD TO CART
-            else if (action.equals("add_to_cart")) {
-                ps = conn.prepareStatement(
-                        "INSERT INTO user_events (session_id, event_type, page_url, event_data) VALUES (?, ?, ?, ?)"
-                );
-                ps.setString(1, sessionId);
-                ps.setString(2, "add_to_cart");
-                ps.setString(3, obj.getString("pageUrl"));
-                ps.setString(4, obj.getString("productName"));
-                ps.executeUpdate();
-            }
-
-            // 🔹 ORDER COMPLETED
-            else if (action.equals("order_completed")) {
-                ps = conn.prepareStatement(
-                        "INSERT INTO user_events (session_id, event_type, page_url, event_data) VALUES (?, ?, ?, ?)"
-                );
-                ps.setString(1, sessionId);
-                ps.setString(2, "order_completed");
-                ps.setString(3, obj.getString("pageUrl"));
-                ps.setString(4, obj.getString("orderId"));
-                ps.executeUpdate();
-            }
-
-            // 🔹 TIME SPENT
-            else if (action.equals("time_spent")) {
-                ps = conn.prepareStatement(
-                        "INSERT INTO user_events (session_id, event_type, page_url, time_on_page) VALUES (?, ?, ?, ?)"
-                );
-                ps.setString(1, sessionId);
-                ps.setString(2, "time_spent");
-                ps.setString(3, obj.getString("pageUrl"));
-                ps.setInt(4, obj.getInt("time"));
-                ps.executeUpdate();
-            }
-
-            response.setStatus(200);
+            resp.getWriter().write("ok");
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.setStatus(500);
+            resp.getWriter().write("error: " + e.getMessage());
         } finally {
-            try { if (ps != null) ps.close(); } catch (Exception ignored) {}
-            try { if (conn != null) conn.close(); } catch (Exception ignored) {}
+            try { if (conn != null) conn.close(); } catch (Exception e) {}
         }
     }
 }
