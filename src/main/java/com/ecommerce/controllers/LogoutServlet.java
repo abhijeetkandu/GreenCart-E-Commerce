@@ -12,6 +12,6 @@ public class LogoutServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("text/html");
-        resp.sendRedirect(req.getContextPath()+"/views/admin/adminlogin.jsp");
+        resp.sendRedirect(req.getContextPath()+"/views/user/login.jsp");
     }
 }
