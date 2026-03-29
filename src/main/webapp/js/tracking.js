@@ -1,48 +1,48 @@
-(function () {
+// tracking.js
+function getDeviceType() {
+    var ua = navigator.userAgent.toLowerCase();
+    if (/mobile|android|iphone|ipad/.test(ua)) return "Mobile";
+    return "Desktop";
+}
 
-    var TRACK_URL = var TRACK_URL = window.TRACK_URL || '/track';
-    var pageStart = Date.now();
+// Call this on page load
+function trackSession() {
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "session_start",
+            deviceType: getDeviceType(),
+            pageUrl: window.location.pathname
+        })
+    }).then(res => console.log("Session tracked", res.status))
+      .catch(err => console.error("Tracking error", err));
+}
 
-    function send(data) {
-        fetch(TRACK_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams(data)
-        }).catch(err => console.log("Tracking error:", err));
-    }
-
-    // 🟢 Session Start
-    send({
-        action: 'session_start',
-        pageUrl: window.location.pathname,
-        deviceType: navigator.userAgent
+// Track product click
+function trackProductClick(productName) {
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "product_click",
+            productName: productName,
+            pageUrl: window.location.pathname
+        })
     });
+}
 
-    // 📄 Page Visit
-    send({
-        action: 'event',
-        eventType: 'page_visit',
-        pageUrl: window.location.pathname,
-        timeOnPage: 0
+// Track order completion
+function trackOrderCompletion(orderId) {
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "order_completed",
+            orderId: orderId,
+            pageUrl: window.location.pathname
+        })
     });
+}
 
-    // ⏱️ Time Tracking
-    window.addEventListener("beforeunload", function () {
-        var timeSpent = Math.round((Date.now() - pageStart) / 1000);
-
-        send({
-            action: 'event',
-            eventType: 'time_on_page',
-            pageUrl: window.location.pathname,
-            timeOnPage: timeSpent
-        });
-
-        send({
-            action: 'session_end',
-            timeOnPage: timeSpent
-        });
-    });
-
-})();
+window.onload = trackSession;
