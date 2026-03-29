@@ -1,6 +1,10 @@
 <%@page import="java.util.*,java.sql.*,com.ecommerce.model.DbConnection"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
+    if (userId == null) {
+        response.sendRedirect(request.getContextPath() + "/views/user/login.jsp");
+        return;
+    }
     Integer userId = (Integer) session.getAttribute("userId");
     String userName = (String) session.getAttribute("userName");
     Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("cart");
@@ -115,7 +119,7 @@
         <div class="nav-right-links d-none d-md-flex">
             <% if(userName != null) { %>
             <span style="color:rgba(255,255,255,0.6);font-size:0.82rem;">Hi, <%= userName.split(" ")[0] %></span>
-            <a href="<%=request.getContextPath()%>/logout" class="btn-nav">Sign Out</a>
+
             <% } else { %>
             <a href="<%=request.getContextPath()%>/views/user/login.jsp" class="btn-nav">Login</a>
             <% } %>

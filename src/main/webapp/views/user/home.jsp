@@ -3,6 +3,10 @@
 <%@ page import="com.ecommerce.model.DbConnection" %>
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
 <%
+    if (userId == null) {
+        response.sendRedirect(request.getContextPath() + "/views/user/login.jsp");
+        return;
+    }
     Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("cart");
     if (cart == null) {
         cart = new HashMap<>();
