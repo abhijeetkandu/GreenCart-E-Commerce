@@ -1,4 +1,12 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String error = (String) request.getAttribute("error");
+    String userName = (String) session.getAttribute("userName");
+    if (userName != null) {
+        response.sendRedirect(request.getContextPath() + "/views/user/home.jsp");
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +23,6 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Satoshi',sans-serif; min-height:100vh; display:grid; grid-template-columns:1fr 1fr; overflow:hidden; }
 
-        /* LEFT */
         .left { background:var(--forest); display:flex; flex-direction:column; justify-content:space-between; padding:3rem; position:relative; overflow:hidden; }
         .left::before { content:''; position:absolute; width:500px; height:500px; background:radial-gradient(circle,rgba(93,190,130,0.1),transparent 65%); top:-150px; right:-100px; pointer-events:none; }
         .left::after  { content:''; position:absolute; width:300px; height:300px; background:radial-gradient(circle,rgba(93,190,130,0.07),transparent 65%); bottom:-60px; left:-50px; pointer-events:none; }
@@ -24,26 +31,22 @@
         .brand-leaf { width:38px; height:38px; background:linear-gradient(135deg,var(--mint),var(--sage)); border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
         .brand-txt { font-family:'Fraunces',serif; font-size:1.3rem; font-weight:700; color:#fff; }
         .brand-txt em { font-style:normal; color:var(--mint); }
-
         .left-hero { z-index:1; }
         .left-hero h2 { font-family:'Fraunces',serif; font-size:2.8rem; font-weight:900; color:#fff; line-height:1.1; letter-spacing:-1px; margin-bottom:1rem; }
         .left-hero h2 em { font-style:italic; color:var(--mint); }
         .left-hero p { color:rgba(255,255,255,0.45); font-size:0.9rem; line-height:1.7; max-width:300px; }
-
         .left-features { z-index:1; display:flex; flex-direction:column; gap:0.7rem; }
         .feat-item { display:flex; align-items:center; gap:0.7rem; }
         .feat-dot { width:6px; height:6px; border-radius:50%; background:var(--mint); flex-shrink:0; }
         .feat-txt { color:rgba(255,255,255,0.6); font-size:0.84rem; }
 
-        /* RIGHT */
-        .right { background:var(--cream); display:flex; align-items:center; justify-content:center; padding:3rem 2.5rem; }
+        .right { background:var(--cream); display:flex; align-items:center; justify-content:center; padding:3rem 2.5rem; overflow-y:auto; }
         .form-box { width:100%; max-width:380px; animation:slideIn 0.45s cubic-bezier(0.16,1,0.3,1) forwards; }
         @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
 
         .form-eyebrow { display:inline-flex; align-items:center; gap:0.4rem; background:#fff; color:var(--sage); font-size:0.7rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:0.3rem 0.8rem; border-radius:50px; border:1px solid var(--border); margin-bottom:1.5rem; }
         .form-title { font-family:'Fraunces',serif; font-size:2rem; font-weight:900; color:var(--ink); letter-spacing:-0.5px; margin-bottom:0.3rem; }
         .form-sub { color:var(--mist); font-size:0.88rem; margin-bottom:2rem; }
-
         .alert-err { background:#fff0ed; border:1px solid #ffc4b0; color:var(--ember); border-radius:10px; padding:0.7rem 1rem; font-size:0.83rem; font-weight:500; margin-bottom:1.3rem; display:flex; align-items:center; gap:0.5rem; }
 
         .field-group { margin-bottom:1.2rem; }
@@ -62,16 +65,22 @@
         .divider { display:flex; align-items:center; gap:0.8rem; margin:1.5rem 0 1.2rem; }
         .divider hr { flex:1; border:none; border-top:1.5px solid var(--border); }
         .divider span { font-size:0.72rem; color:var(--mist); }
-
         .alt-link { text-align:center; font-size:0.84rem; color:var(--mist); }
         .alt-link a { color:var(--sage); font-weight:700; text-decoration:none; transition:color 0.2s; }
         .alt-link a:hover { color:var(--leaf); }
 
-        @media(max-width:768px) { body{grid-template-columns:1fr;} .left{display:none;} .right{padding:2rem 1.5rem;} }
+        /* MOBILE */
+        @media(max-width:768px) {
+            body { grid-template-columns:1fr; overflow:auto; }
+            .left { display:none; }
+            .right { padding:2rem 1.5rem; min-height:100vh; align-items:flex-start; padding-top:3rem; }
+            .form-box { max-width:100%; }
+            .form-title { font-size:1.8rem; }
+            .field-input { font-size:16px; }
+        }
     </style>
 </head>
 <body>
-
 <div class="left">
     <div class="left-brand">
         <div class="brand-leaf">🌿</div>
@@ -88,23 +97,17 @@
         <div class="feat-item"><div class="feat-dot"></div><span class="feat-txt">Secure & encrypted checkout</span></div>
     </div>
 </div>
-
 <div class="right">
     <div class="form-box">
         <div class="form-eyebrow">Welcome back</div>
         <h1 class="form-title">Sign in</h1>
         <p class="form-sub">Enter your credentials to continue</p>
-
-        <%
-            String error = (String) request.getAttribute("error");
-            if(error != null) {
-        %>
+        <% if(error != null) { %>
         <div class="alert-err">
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             <%= error %>
         </div>
         <% } %>
-
         <form action="<%=request.getContextPath()%>/logForm" method="post">
             <div class="field-group">
                 <label class="field-label">Email Address</label>
@@ -125,7 +128,6 @@
                 <svg class="arr" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
             </button>
         </form>
-
         <div class="divider"><hr><span>New to GreenCart?</span><hr></div>
         <div class="alt-link">Don't have an account? <a href="<%=request.getContextPath()%>/views/user/register.jsp">Create one free</a></div>
     </div>
