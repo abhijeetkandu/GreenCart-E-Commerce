@@ -3,10 +3,7 @@
 <%@ page import="com.ecommerce.model.DbConnection" %>
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
 <%
-    if (userId == null) {
-        response.sendRedirect(request.getContextPath() + "/views/user/login.jsp");
-        return;
-    }
+
     Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("cart");
     if (cart == null) {
         cart = new HashMap<>();
@@ -15,7 +12,10 @@
 
     String userName = (String) session.getAttribute("userName");
     Integer userId  = (Integer) session.getAttribute("userId");
-
+    if (userId == null) {
+        response.sendRedirect(request.getContextPath() + "/views/user/login.jsp");
+        return;
+    }
     Connection conn = DbConnection.getConnection();
 
     // Fetch distinct categories

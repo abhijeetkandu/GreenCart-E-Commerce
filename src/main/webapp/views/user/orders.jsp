@@ -1,10 +1,7 @@
 <%@page import="java.util.*,java.sql.*,com.ecommerce.model.DbConnection"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
-    if (userId == null) {
-        response.sendRedirect(request.getContextPath() + "/views/user/login.jsp");
-        return;
-    }
+
     Integer userId = (Integer) session.getAttribute("userId");
     String userName = (String) session.getAttribute("userName");
     Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("cart");
