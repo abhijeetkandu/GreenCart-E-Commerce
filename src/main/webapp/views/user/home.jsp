@@ -1018,9 +1018,7 @@
     }
     function gcSuggest(text) { document.getElementById('gc-input').value=text; gcSend(); }
 </script>
-<script>
-    var TRACK_URL = '<%=request.getContextPath()%>/track';
-</script>
+<meta name="contextPath" content="<%=request.getContextPath()%>">
 <script src="<%=request.getContextPath()%>/js/tracking.js"></script>
 </body>
 </html>
