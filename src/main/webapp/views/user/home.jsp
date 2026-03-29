@@ -457,7 +457,7 @@
             </div>
             <a href="<%=request.getContextPath()%>/logout" class="btn-login-nav">Sign Out</a>
             <% } else { %>
-            <a href="<%=request.getContextPath()%>/views/user/login.jsp" class="btn-login-nav">Login</a>
+            <a href="<%=request.getContextPath()%>/views/user/login.jsp" class="btn-login-nav">Sign Out</a>
             <% } %>
             <a href="<%=request.getContextPath()%>/views/user/cart.jsp" class="btn-cart-nav" id="cartBtn">
                 🛒 <span class="d-none d-sm-inline">Cart</span> <span class="cart-count" id="cartCount"><%= cart.size() %></span>
@@ -497,7 +497,7 @@
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                     </a>
                     <% if(userId == null) { %>
-                    <a href="<%=request.getContextPath()%>/views/user/register.jsp" class="btn-hero-secondary">Create Account</a>
+
                     <% } %>
                 </div>
             </div>
