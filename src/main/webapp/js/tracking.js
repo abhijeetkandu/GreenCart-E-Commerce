@@ -1,6 +1,6 @@
 (function () {
 
-    var TRACK_URL = '/track';
+    var TRACK_URL = var TRACK_URL = window.TRACK_URL || '/track';
     var pageStart = Date.now();
 
     function send(data) {

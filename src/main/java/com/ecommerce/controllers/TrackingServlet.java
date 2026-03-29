@@ -19,7 +19,7 @@ public class TrackingServlet extends HttpServlet {
 
         try (Connection conn = DbConnection.getConnection()) {
 
-            // 🟢 SESSION START
+
             if ("session_start".equals(action)) {
 
                 PreparedStatement ps = conn.prepareStatement(
@@ -53,6 +53,7 @@ public class TrackingServlet extends HttpServlet {
                 ps.executeUpdate();
                 ps.close();
             }
+
 
             else if ("session_end".equals(action)) {
 
